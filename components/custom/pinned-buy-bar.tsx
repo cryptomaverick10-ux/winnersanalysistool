@@ -4,7 +4,7 @@ import { FooterBar } from './footer';
 import { cn } from '@/lib/utils';
 
 /**
- * The bottom bar holding a pinned Buy button, above the "Powered by Deriv"
+ * The bottom bar holding a pinned Buy button, above the "Powered by CEO"
  * footer — the layout the App Builder gallery screenshots advertise.
  *
  * Rendered **in flow** as the last `shrink-0` child of the mobile `h-dvh`
