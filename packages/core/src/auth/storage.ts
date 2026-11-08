@@ -58,11 +58,11 @@ export function clearCodeVerifier(): void {
 // --- Auth Info ---
 
 export function storeAuthInfo(authInfo: AuthInfo): void {
-  localStorage.setItem(AUTH_INFO_KEY, JSON.stringify(authInfo));
+  sessionStorage.setItem(AUTH_INFO_KEY, JSON.stringify(authInfo));
 }
 
 export function getAuthInfo(): AuthInfo | null {
-  const raw = localStorage.getItem(AUTH_INFO_KEY);
+  const raw = sessionStorage.getItem(AUTH_INFO_KEY);
   if (!raw) return null;
 
   const authInfo: AuthInfo = JSON.parse(raw);
@@ -73,43 +73,43 @@ export function getAuthInfo(): AuthInfo | null {
 }
 
 export function clearAuthInfo(): void {
-  localStorage.removeItem(AUTH_INFO_KEY);
+  sessionStorage.removeItem(AUTH_INFO_KEY);
 }
 
 // --- Deriv Accounts ---
 
 export function storeDerivAccounts(accounts: DerivAccount[]): void {
-  localStorage.setItem(DERIV_ACCOUNTS_KEY, JSON.stringify(accounts));
+  sessionStorage.setItem(DERIV_ACCOUNTS_KEY, JSON.stringify(accounts));
 }
 
 export function getDerivAccounts(): DerivAccount[] | null {
-  const raw = localStorage.getItem(DERIV_ACCOUNTS_KEY);
+  const raw = sessionStorage.getItem(DERIV_ACCOUNTS_KEY);
   if (!raw) return null;
   return JSON.parse(raw);
 }
 
 export function clearDerivAccounts(): void {
-  localStorage.removeItem(DERIV_ACCOUNTS_KEY);
+  sessionStorage.removeItem(DERIV_ACCOUNTS_KEY);
 }
 
-// --- Active Login ID (localStorage) ---
+// --- Active Login ID (sessionStorage) ---
 
 export function setActiveLoginId(loginId: string): void {
-  localStorage.setItem(ACTIVE_LOGINID_KEY, loginId);
+  sessionStorage.setItem(ACTIVE_LOGINID_KEY, loginId);
 }
 
 export function getActiveLoginId(): string | null {
-  return localStorage.getItem(ACTIVE_LOGINID_KEY);
+  return sessionStorage.getItem(ACTIVE_LOGINID_KEY);
 }
 
-// --- Account Type (localStorage) ---
+// --- Account Type (sessionStorage) ---
 
 export function setAccountType(type: 'demo' | 'real'): void {
-  localStorage.setItem(ACCOUNT_TYPE_KEY, type);
+  sessionStorage.setItem(ACCOUNT_TYPE_KEY, type);
 }
 
 export function getAccountType(): string | null {
-  return localStorage.getItem(ACCOUNT_TYPE_KEY);
+  return sessionStorage.getItem(ACCOUNT_TYPE_KEY);
 }
 
 // --- Clear All Auth Data ---
@@ -119,6 +119,6 @@ export function clearAllAuthData(): void {
   clearCodeVerifier();
   clearAuthInfo();
   clearDerivAccounts();
-  localStorage.removeItem(ACTIVE_LOGINID_KEY);
-  localStorage.removeItem(ACCOUNT_TYPE_KEY);
+  sessionStorage.removeItem(ACTIVE_LOGINID_KEY);
+  sessionStorage.removeItem(ACCOUNT_TYPE_KEY);
 }

@@ -12,8 +12,8 @@ import './custom.css';
 export function generateMetadata(): Metadata {
   const faviconUri = buildFaviconUri();
   return {
-    title: process.env.NEXT_PUBLIC_DERIV_APP_NAME?.trim() || 'Deriv Digits Trading App',
-    description: 'A white-label trading application powered by Deriv',
+    title: process.env.NEXT_PUBLIC_DERIV_APP_NAME?.trim() || 'Deriv Matches AI Engine',
+    description: 'Live Deriv Matches and Differs probability analysis dashboard',
     ...(faviconUri ? { icons: { icon: faviconUri } } : {}),
   };
 }

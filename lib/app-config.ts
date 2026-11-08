@@ -58,15 +58,9 @@ export interface DigitsAppConfig {
 
 /** All control keys, in default order. */
 export const ALL_CONTROL_KEYS: ControlKey[] = [
-  'tradeType',
   'symbol',
   'tick',
   'digitStats',
-  'contractMode',
-  'stake',
-  'duration',
-  'prediction',
-  'buy',
 ];
 
 export const DEFAULT_APP_CONFIG: DigitsAppConfig = {
@@ -82,7 +76,7 @@ export const DEFAULT_APP_CONFIG: DigitsAppConfig = {
     buy: 'a',
   },
   order: [...ALL_CONTROL_KEYS],
-  buy: { pinned: true },
+  buy: { pinned: false },
 };
 
 /** Validate + normalise an arbitrary value into a safe DigitsAppConfig. */
@@ -105,5 +99,5 @@ export function normalizeAppConfig(value: unknown): DigitsAppConfig {
   const order = normalizeBlockOrder(raw.order, ALL_CONTROL_KEYS);
   // A stored config with no `buy` key predates the pin option: keep that app
   // unpinned rather than adopting the new default on its owner's behalf.
-  return { styles, order, buy: { pinned: !!raw.buy?.pinned } };
+  return { styles, order, buy: { pinned: false } };
 }
