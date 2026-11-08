@@ -54,7 +54,6 @@ export interface DigitsViewProps {
   accounts: DerivAccount[];
   activeAccount: DerivAccount | null;
   onLogin: () => Promise<void>;
-  onSignUp: () => Promise<void>;
   onLogout: () => void;
   onSwitchAccount: (accountId: string) => Promise<void>;
 
@@ -120,7 +119,6 @@ export function DigitsView({
   accounts,
   activeAccount,
   onLogin,
-  onSignUp,
   onLogout,
   onSwitchAccount,
   isConnected,
@@ -239,7 +237,6 @@ export function DigitsView({
         accounts={accounts}
         activeAccount={activeAccount}
         onLogin={editMode ? noopAsync : onLogin}
-        onSignUp={editMode ? noopAsync : onSignUp}
         onLogout={editMode ? noop : onLogout}
         onSwitchAccount={editMode ? noopAsync : onSwitchAccount}
         logoSrc={logoSrc}
@@ -254,7 +251,6 @@ export function DigitsView({
     activeAccount,
     editMode,
     onLogin,
-    onSignUp,
     onLogout,
     onSwitchAccount,
     logoSrc,
@@ -482,7 +478,6 @@ export function DigitsView({
         open={showLoginPrompt}
         onOpenChange={setShowLoginPrompt}
         onLogin={editMode ? noopAsyncAuth : onLogin}
-        onSignUp={editMode ? noopAsyncAuth : onSignUp}
       />
     </main>
   );

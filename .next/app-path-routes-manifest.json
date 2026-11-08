@@ -1,0 +1,13 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/api/auth/activity/route": "/api/auth/activity",
+  "/api/auth/login/route": "/api/auth/login",
+  "/api/auth/logout/route": "/api/auth/logout",
+  "/api/auth/session/route": "/api/auth/session",
+  "/api/owner/analyze/route": "/api/owner/analyze",
+  "/api/owner/history/route": "/api/owner/history",
+  "/login/page": "/login",
+  "/page": "/",
+  "/reports/page": "/reports"
+}

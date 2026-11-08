@@ -26,5 +26,8 @@ export async function POST(request: NextRequest) {
   if (prices.length === 0) {
     return NextResponse.json({ error: 'Live tick history is required' }, { status: 400 });
   }
-  return NextResponse.json(analyzeDigits(prices, pipSize, strategy, targetDigit, windowSize));
+  const response = NextResponse.json(analyzeDigits(prices, pipSize, strategy, targetDigit, windowSize));
+  response.headers.set('Cache-Control', 'no-store');
+  response.headers.set('Pragma', 'no-cache');
+  return response;
 }

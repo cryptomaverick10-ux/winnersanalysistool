@@ -38,7 +38,7 @@ export function LiveDigits({
   const providerLogo = useLogoSrc();
   const logoSrc = logoSrcOverride ?? providerLogo;
   const { ws, isConnected, isExhausted, auth } = useDerivWSContext();
-  const { authState, accounts, activeAccount, login, signUp, logout, switchAccount } = auth;
+  const { authState, accounts, activeAccount, login, logout, switchAccount } = auth;
 
   const trading = useDigitsTrading({
     ws,
@@ -54,7 +54,6 @@ export function LiveDigits({
       accounts={accounts}
       activeAccount={activeAccount}
       onLogin={login}
-      onSignUp={signUp}
       onLogout={logout}
       onSwitchAccount={switchAccount}
       logoSrc={logoSrc}

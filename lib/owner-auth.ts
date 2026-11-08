@@ -84,7 +84,9 @@ export function clearOwnerCookie(response: NextResponse): NextResponse {
 export function requireOwner(request: NextRequest): NextResponse | null {
   const session = request.cookies.get(OWNER_COOKIE)?.value;
   if (!verifySessionToken(session)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const response = NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    response.headers.set('Cache-Control', 'no-store');
+    return response;
   }
   if (!isSafeOrigin(request)) {
     return NextResponse.json({ error: 'Invalid origin' }, { status: 403 });

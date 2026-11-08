@@ -19,7 +19,10 @@ async function readHistory(): Promise<unknown[]> {
 export async function GET(request: NextRequest) {
   const unauthorized = requireOwner(request);
   if (unauthorized) return unauthorized;
-  return NextResponse.json({ history: await readHistory() });
+  const response = NextResponse.json({ history: await readHistory() });
+  response.headers.set('Cache-Control', 'no-store');
+  response.headers.set('Pragma', 'no-cache');
+  return response;
 }
 
 export async function POST(request: NextRequest) {

@@ -25,14 +25,12 @@ interface LoginPromptDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onLogin: () => Promise<void>;
-  onSignUp: () => Promise<void>;
 }
 
 function LoginPromptActions({
   onClose,
   onLogin,
-  onSignUp,
-}: Pick<LoginPromptDialogProps, 'onLogin' | 'onSignUp'> & { onClose: () => void }) {
+}: Pick<LoginPromptDialogProps, 'onLogin'> & { onClose: () => void }) {
   // One handoff per mount: Radix/vaul keep the closing CTAs clickable through
   // animate-out, and a second activation would rebuild the PKCE verifier/state
   // the first OAuth URL was minted with. The ref resets when the prompt
@@ -48,10 +46,7 @@ function LoginPromptActions({
 
   return (
     <>
-      <Button className="w-full" onClick={() => start(onSignUp)}>
-        <Localize i18n_default_text="Create free account" />
-      </Button>
-      <Button variant="outline" className="w-full" onClick={() => start(onLogin)}>
+      <Button className="w-full" onClick={() => start(onLogin)}>
         <Localize i18n_default_text="Log in" />
       </Button>
     </>
@@ -61,14 +56,12 @@ function LoginPromptActions({
 /**
  * Prompt shown when a logged-out user activates Buy (Trader's auth-prompt
  * parity): a centered dialog on desktop, a bottom sheet on mobile. Freely
- * dismissible; both actions hand off to the existing OAuth flows the header
- * buttons use.
+ * dismissible; the login action uses the existing Deriv OAuth flow.
  */
 export function LoginPromptDialog({
   open,
   onOpenChange,
   onLogin,
-  onSignUp,
 }: LoginPromptDialogProps) {
   const isMobile = useIsMobile();
   const close = () => onOpenChange(false);
@@ -92,11 +85,11 @@ export function LoginPromptDialog({
               <Localize i18n_default_text="Start trading with us" />
             </DrawerTitle>
             <DrawerDescription>
-              <Localize i18n_default_text="Log in or create a free account to place a trade." />
+              <Localize i18n_default_text="Log in to place a trade." />
             </DrawerDescription>
           </DrawerHeader>
           <DrawerFooter>
-            <LoginPromptActions onClose={close} onLogin={onLogin} onSignUp={onSignUp} />
+            <LoginPromptActions onClose={close} onLogin={onLogin} />
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
@@ -111,11 +104,11 @@ export function LoginPromptDialog({
             <Localize i18n_default_text="Start trading with us" />
           </DialogTitle>
           <DialogDescription>
-            <Localize i18n_default_text="Log in or create a free account to place a trade." />
+            <Localize i18n_default_text="Log in to place a trade." />
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-2">
-          <LoginPromptActions onClose={close} onLogin={onLogin} onSignUp={onSignUp} />
+          <LoginPromptActions onClose={close} onLogin={onLogin} />
         </div>
       </DialogContent>
     </Dialog>
