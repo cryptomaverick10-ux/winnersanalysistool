@@ -1,9 +1,0 @@
-{
-  "/_global-error/page": "/_global-error",
-  "/_not-found/page": "/_not-found",
-  "/api/owner/analyze/route": "/api/owner/analyze",
-  "/api/owner/history/route": "/api/owner/history",
-  "/login/page": "/login",
-  "/page": "/",
-  "/reports/page": "/reports"
-}

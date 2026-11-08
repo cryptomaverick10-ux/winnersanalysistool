@@ -20,6 +20,9 @@ export interface MatchAnalysis {
   recentPattern: number[];
   dataQuality: 'RELIABLE' | 'LIMITED' | 'INSUFFICIENT';
   reasons: string[];
+  validatedAccuracy: number;
+  validationSamples: number;
+  validationEligible: boolean;
 }
 
 export function extractDigits(prices: number[], pipSize: number): number[] {
@@ -100,6 +103,38 @@ export function analyzeDigits(
   const leastFrequentDigit = counts.indexOf(minCount);
   const recentPattern = recent.slice(-10);
 
+  const backtestStart = Math.max(25, window.length - 250);
+  let validationWins = 0;
+  let validationSamples = 0;
+  if (total >= 100) {
+    for (let index = backtestStart; index < window.length; index += 1) {
+      const training = window.slice(0, index);
+      if (training.length < 25) continue;
+      const actual = window[index];
+      const trainCounts = countsFor(training);
+      const trainTotal = training.length;
+      const ranked = Array.from({ length: 10 }, (_, digit) => digit).sort((a, b) =>
+        (trainCounts[b] + 1) / (trainTotal + 10) - (trainCounts[a] + 1) / (trainTotal + 10)
+      );
+      const predicted = ranked[0];
+      const targetMatch = trainCounts[targetDigit] / Math.max(trainTotal, 1);
+      const differsEstimatedAccuracy = 1 - targetMatch;
+      validationSamples += 1;
+      if (strategy === 'MATCHES') {
+        if (actual === predicted) validationWins += 1;
+      } else if (differsEstimatedAccuracy >= 0.8 && actual !== targetDigit) {
+        validationWins += 1;
+      }
+    }
+  }
+  const validatedAccuracy = validationSamples > 0 ? (validationWins / validationSamples) * 100 : 0;
+  const validationEligible = validationSamples >= 25 && validatedAccuracy >= 80 && probability >= 80 && total >= 250;
+  if (!validationEligible) {
+    if (total < 25 || probability < 65) confidence = 'WAIT / NO STRONG SIGNAL';
+    else if (probability >= 65 && total >= 100) confidence = 'MODERATE CONFIDENCE';
+    else confidence = 'LOW CONFIDENCE';
+  }
+
   const reasons = [
     `${total} ticks analyzed across the configured ${window.length}-tick window.`,
     `Digit ${predictedDigit} is currently ranked first in weighted 25/50/long-window estimates.`,
@@ -123,5 +158,8 @@ export function analyzeDigits(
     recentPattern,
     dataQuality,
     reasons,
+    validatedAccuracy,
+    validationSamples,
+    validationEligible,
   };
 }
