@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireOwner } from '@/lib/owner-auth';
 import { analyzeDigits, type MatchStrategy } from '@/lib/match-analysis';
 
 export async function POST(request: NextRequest) {
-  const unauthorized = requireOwner(request);
-  if (unauthorized) return unauthorized;
   const body = await request.json().catch(() => null) as {
     prices?: unknown;
     pipSize?: unknown;

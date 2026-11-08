@@ -1,6 +1,5 @@
 import { getStore } from '@netlify/blobs';
 import { NextRequest, NextResponse } from 'next/server';
-import { requireOwner } from '@/lib/owner-auth';
 
 const STORE_NAME = 'matches-analysis-private';
 const HISTORY_KEY = 'prediction-history-v1';
@@ -17,8 +16,6 @@ async function readHistory(): Promise<unknown[]> {
 }
 
 export async function GET(request: NextRequest) {
-  const unauthorized = requireOwner(request);
-  if (unauthorized) return unauthorized;
   const response = NextResponse.json({ history: await readHistory() });
   response.headers.set('Cache-Control', 'no-store');
   response.headers.set('Pragma', 'no-cache');
@@ -26,8 +23,6 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const unauthorized = requireOwner(request);
-  if (unauthorized) return unauthorized;
   const body = await request.json().catch(() => null) as { record?: unknown; replace?: boolean; history?: unknown[] } | null;
   if (body?.replace === true && Array.isArray(body.history)) {
     try {

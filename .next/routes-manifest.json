@@ -42,30 +42,6 @@
       "namedRegex": "^/_not\\-found(?:/)?$"
     },
     {
-      "page": "/api/auth/activity",
-      "regex": "^/api/auth/activity(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/api/auth/activity(?:/)?$"
-    },
-    {
-      "page": "/api/auth/login",
-      "regex": "^/api/auth/login(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/api/auth/login(?:/)?$"
-    },
-    {
-      "page": "/api/auth/logout",
-      "regex": "^/api/auth/logout(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/api/auth/logout(?:/)?$"
-    },
-    {
-      "page": "/api/auth/session",
-      "regex": "^/api/auth/session(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/api/auth/session(?:/)?$"
-    },
-    {
       "page": "/api/owner/analyze",
       "regex": "^/api/owner/analyze(?:/)?$",
       "routeKeys": {},
