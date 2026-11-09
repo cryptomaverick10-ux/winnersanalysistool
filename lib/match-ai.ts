@@ -52,11 +52,17 @@ export function analyzeMatchDigits(digits: number[], lookback: number): MatchAiR
     95,
     50 + (best.gap * 1.2) + ((10 - best.percentage) * 2)
   );
-  const roundedConfidence = Math.round(confidence);
-  const allDigitsHaveRecentHits = ranked.every((item) => item.gap < 12);
+  const stabilityBase = window.length >= 10 ? Math.floor(window.length / 2) : window.length;
+  const firstHalf = window.slice(0, stabilityBase);
+  const secondHalf = window.slice(stabilityBase);
+  const firstCount = firstHalf.filter((digit) => digit === best.digit).length;
+  const secondCount = secondHalf.filter((digit) => digit === best.digit).length;
+  const stabilityBonus = Math.max(0, 8 - (Math.abs(firstCount - secondCount) * 2));
+  const roundedConfidence = Math.round(Math.min(95, confidence + stabilityBonus));
+  const noDigitIsOverdue = ranked.every((item) => item.gap < 15);
 
   let risk: MatchAiResult['risk'];
-  if (allDigitsHaveRecentHits) {
+  if (noDigitIsOverdue) {
     risk = 'WAIT - NO SETUP';
   } else if (best.gap > 30 && best.percentage < 7) {
     risk = 'LOW RISK';

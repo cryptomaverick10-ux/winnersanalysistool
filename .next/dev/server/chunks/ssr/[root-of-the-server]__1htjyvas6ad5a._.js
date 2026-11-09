@@ -249,8 +249,8 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$i18n$2f$provider$2e$t
 function generateMetadata() {
     const faviconUri = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$build$2d$favicon$2d$uri$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["buildFaviconUri"])();
     return {
-        title: process.env.NEXT_PUBLIC_DERIV_APP_NAME?.trim() || 'Deriv Matches AI Engine',
-        description: 'Live Deriv Matches and Differs probability analysis dashboard',
+        title: process.env.NEXT_PUBLIC_DERIV_APP_NAME?.trim() || 'CEO HUB Analysis',
+        description: 'Live market probability analysis dashboard',
         ...faviconUri ? {
             icons: {
                 icon: faviconUri
@@ -266,7 +266,7 @@ function RootLayout({ children }) {
         className: "h-full lg:h-auto",
         suppressHydrationWarning: true,
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("body", {
-            className: `${fontClass} bg-background flex min-h-dvh flex-col overflow-hidden max-lg:h-dvh max-lg:overflow-hidden lg:block lg:h-auto lg:min-h-screen lg:overflow-x-hidden lg:overflow-y-auto`,
+            className: `${fontClass} bg-background flex min-h-dvh flex-col overflow-x-hidden overflow-y-auto lg:block lg:min-h-screen`,
             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$i18n$2f$provider$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["TemplateI18nProvider"], {
                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$custom$2f$template$2d$layout$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["TemplateLayout"], {
                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$custom$2f$logo$2d$src$2d$provider$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["LogoSrcProvider"], {

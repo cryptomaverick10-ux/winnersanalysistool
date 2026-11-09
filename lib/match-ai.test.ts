@@ -23,3 +23,12 @@ test('analyzeMatchDigits ranks cold digits by the MATCHS score formula', () => {
     index === 0 || result.ranked[index - 1].score >= item.score
   ));
 });
+
+test('analyzeMatchDigits waits when no digit has a gap of 15 ticks', () => {
+  const digits = Array.from({ length: 25 }, (_, index) => index % 10);
+  digits.push(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0);
+  const result = analyzeMatchDigits(digits, 25);
+
+  assert.equal(result.waiting, true);
+  assert.equal(result.risk, 'WAIT - NO SETUP');
+});

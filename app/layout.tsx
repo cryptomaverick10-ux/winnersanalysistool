@@ -12,8 +12,8 @@ import './custom.css';
 export function generateMetadata(): Metadata {
   const faviconUri = buildFaviconUri();
   return {
-    title: process.env.NEXT_PUBLIC_DERIV_APP_NAME?.trim() || 'Deriv Matches AI Engine',
-    description: 'Live Deriv Matches and Differs probability analysis dashboard',
+    title: process.env.NEXT_PUBLIC_DERIV_APP_NAME?.trim() || 'CEO HUB Analysis',
+    description: 'Live market probability analysis dashboard',
     ...(faviconUri ? { icons: { icon: faviconUri } } : {}),
   };
 }
@@ -27,7 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="h-full lg:h-auto" suppressHydrationWarning>
       <body
-        className={`${fontClass} bg-background flex min-h-dvh flex-col overflow-hidden max-lg:h-dvh max-lg:overflow-hidden lg:block lg:h-auto lg:min-h-screen lg:overflow-x-hidden lg:overflow-y-auto`}
+        className={`${fontClass} bg-background flex min-h-dvh flex-col overflow-x-hidden overflow-y-auto lg:block lg:min-h-screen`}
       >
         <TemplateI18nProvider>
           <TemplateLayout>

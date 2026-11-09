@@ -65,7 +65,7 @@ function AccountLabel({ type }: { type: 'demo' | 'real' }) {
 
 function resolveHeaderAppName(appName?: string): string {
   const fromEnv = process.env.NEXT_PUBLIC_DERIV_APP_NAME?.trim();
-  return appName?.trim() || fromEnv || 'Deriv Trading';
+  return appName?.trim() || fromEnv || 'CEO HUB Analysis';
 }
 
 function resolveShowAppName(showAppName?: boolean): boolean {
