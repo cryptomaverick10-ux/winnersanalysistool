@@ -2929,6 +2929,10 @@ body {
   letter-spacing: .1em;
 }
 
+.tracking-wider {
+  letter-spacing: .05em;
+}
+
 .text-\[\#07111f\] {
   --tw-text-opacity: 1;
   color: rgb(7 17 31 / var(--tw-text-opacity, 1));

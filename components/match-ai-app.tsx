@@ -48,6 +48,14 @@ interface ManualSignal {
   confidence: number;
 }
 
+interface SignalScanFrame {
+  step: number;
+  digit: number;
+  patternScore: number;
+  occurrenceCount: number;
+  sampleCount: number;
+}
+
 interface ScanResult {
   name: string;
   symbol: string;
@@ -75,12 +83,14 @@ export function MatchAiApp() {
   const [scanResults, setScanResults] = useState<ScanResult[]>([]);
   const [bestMarket, setBestMarket] = useState<ScanResult | null>(null);
   const [generatingSignal, setGeneratingSignal] = useState(false);
+  const [scanFrames, setScanFrames] = useState<SignalScanFrame[]>([]);
   const [countdownSeconds, setCountdownSeconds] = useState(0);
   const [themeMode, setThemeMode] = useState<'dark' | 'light'>('dark');
   const [language, setLanguage] = useState('English');
   const scannerSocketRef = useRef<WebSocket | null>(null);
   const generationTimerRef = useRef<number | null>(null);
   const historyPricesRef = useRef<number[]>([]);
+  const liveDigitsRef = useRef<number[]>([]);
   const tickPipSizeRef = useRef<number | null>(null);
   const [loginStarting, setLoginStarting] = useState(false);
   const { ws, isConnected: socketConnected, auth } = useDerivWSContext();
@@ -113,7 +123,7 @@ export function MatchAiApp() {
   }, [countdownSeconds]);
 
   useEffect(() => () => {
-    if (generationTimerRef.current) window.clearTimeout(generationTimerRef.current);
+    if (generationTimerRef.current) window.clearInterval(generationTimerRef.current);
   }, []);
 
   useEffect(() => {
@@ -191,14 +201,17 @@ export function MatchAiApp() {
       setLivePrice(price);
       setPrices(nextPrices);
       const pipSize = tickPipSizeRef.current;
+      let nextDigits: number[];
       if (pipSize !== null) {
-        setDigits(nextPrices
+        nextDigits = nextPrices
           .map((item) => parseLastDigit(item, pipSize))
-          .filter((digit): digit is number => digit !== null));
+          .filter((digit): digit is number => digit !== null);
       } else {
         const digit = parseLastDigit(price);
-        if (digit !== null) setDigits((current) => [...current, digit].slice(-MAX_DIGITS));
+        nextDigits = digit === null ? liveDigitsRef.current : [...liveDigitsRef.current, digit].slice(-MAX_DIGITS);
       }
+      liveDigitsRef.current = nextDigits;
+      setDigits(nextDigits);
     };
 
     const subscribeToTicks = async () => {
@@ -214,12 +227,12 @@ export function MatchAiApp() {
         const historyPrices = (history.history?.prices ?? []).filter((price) => Number.isFinite(price));
         historyPricesRef.current = historyPrices.slice(-MAX_DIGITS);
         setPrices(historyPrices.slice(-MAX_DIGITS));
-        setDigits(
-          historyPrices
-            .map((price) => parseLastDigit(price))
-            .filter((digit): digit is number => digit !== null)
-            .slice(-MAX_DIGITS)
-        );
+        const historyDigits = historyPrices
+          .map((price) => parseLastDigit(price))
+          .filter((digit): digit is number => digit !== null)
+          .slice(-MAX_DIGITS);
+        liveDigitsRef.current = historyDigits;
+        setDigits(historyDigits);
         if (historyPrices.length) setLivePrice(historyPrices.at(-1)!);
 
         const subscription = await ws.subscribe({ ticks: symbol }, handleTick);
@@ -245,13 +258,22 @@ export function MatchAiApp() {
 
   useEffect(() => {
     setManualSignal(null);
+    setScanFrames([]);
+    if (generationTimerRef.current) window.clearInterval(generationTimerRef.current);
+    generationTimerRef.current = null;
+    setGeneratingSignal(false);
   }, [strategy]);
 
   useEffect(() => {
+    if (generationTimerRef.current) window.clearInterval(generationTimerRef.current);
+    generationTimerRef.current = null;
+    setGeneratingSignal(false);
+    liveDigitsRef.current = [];
     setDigits([]);
     setPrices([]);
     setLivePrice(null);
     setManualSignal(null);
+    setScanFrames([]);
   }, [symbol]);
 
   const matchResult: MatchAiResult = useMemo(
@@ -519,26 +541,55 @@ export function MatchAiApp() {
 
   const generateSignal = () => {
     if (!connected || digits.length < 25 || generatingSignal) return;
-    if (generationTimerRef.current) window.clearTimeout(generationTimerRef.current);
+    if (generationTimerRef.current) window.clearInterval(generationTimerRef.current);
     setGeneratingSignal(true);
     setManualSignal(null);
+    setScanFrames([]);
     setCountdownSeconds(0);
-    generationTimerRef.current = window.setTimeout(() => {
+    let scanStep = 0;
+    generationTimerRef.current = window.setInterval(() => {
+      scanStep += 1;
+      const scanDigits = liveDigitsRef.current.slice(-100);
+      if (scanDigits.length === 0) return;
+      const sampleCount = Math.ceil(scanDigits.length * scanStep / 5);
+      const sample = scanDigits.slice(-sampleCount);
+      const frameAnalysis = analyzeMatchDigits(sample, sample.length);
+      const frameCandidate = frameAnalysis.best;
+      if (frameCandidate) {
+        setScanFrames((frames) => [...frames, {
+          step: scanStep,
+          digit: frameCandidate.digit,
+          patternScore: toLivePatternScore(frameCandidate.percentage),
+          occurrenceCount: frameCandidate.count,
+          sampleCount,
+        }]);
+      }
+
+      if (scanStep < 5) return;
+
+      if (generationTimerRef.current) window.clearInterval(generationTimerRef.current);
+      generationTimerRef.current = null;
       let label = 'WAIT';
       let confidence = 0;
 
-      const durationWindow = digits.slice(-Math.max(25, durationTicks * 25));
+      const latestDigits = liveDigitsRef.current.slice(-100);
+      const durationWindow = latestDigits.slice(-Math.max(25, durationTicks * 25));
       const durationEven = durationWindow.filter((digit) => digit % 2 === 0).length;
       const durationEvenProbability = durationWindow.length ? (durationEven / durationWindow.length) * 100 : 0;
 
+      const scanResult = analyzeMatchDigits(latestDigits, 100);
       if (strategy === 'Matches') {
-        if (matchResult.best && !matchResult.waiting) {
-          label = `MATCH ${matchResult.best.digit}`;
-          confidence = matchResult.confidence;
+        if (scanResult.best && !scanResult.waiting) {
+          label = `MATCH ${scanResult.best.digit}`;
+          confidence = scanResult.confidence;
         }
       } else if (strategy === 'Differs') {
-        label = `DIFFER FROM ${matchResult.best?.digit ?? TARGET_DIGIT}`;
-        confidence = Math.round(analysis.differsProbability);
+        const matchesCount = scanResult.best
+          ? latestDigits.filter((digit) => digit === scanResult.best?.digit).length
+          : 0;
+        const matchesProbability = latestDigits.length ? (matchesCount / latestDigits.length) * 100 : 0;
+        label = `DIFFER FROM ${scanResult.best?.digit ?? TARGET_DIGIT}`;
+        confidence = Math.round(100 - matchesProbability);
       } else if (strategy === 'Over/Under') {
         const over = durationWindow.filter((digit) => digit >= threshold).length / Math.max(durationWindow.length, 1) * 100;
         label = over >= 50 ? `OVER ${threshold - 1}` : `UNDER ${threshold}`;
@@ -547,8 +598,14 @@ export function MatchAiApp() {
         label = durationEvenProbability >= 50 ? 'EVEN' : 'ODD';
         confidence = Math.round(Math.max(durationEvenProbability, 100 - durationEvenProbability));
       } else if (strategy === 'Rise/Fall') {
-        label = analysis.riseProbability >= 50 ? 'RISE' : 'FALL';
-        confidence = Math.round(Math.max(analysis.riseProbability, 100 - analysis.riseProbability));
+        const scanPrices = historyPricesRef.current.slice(-100);
+        const changes = scanPrices.slice(1).map((price, index) => price - scanPrices[index]);
+        const risingChanges = changes.filter((change) => change > 0).length;
+        const fallingChanges = changes.filter((change) => change < 0).length;
+        const directionalChanges = risingChanges + fallingChanges;
+        const riseProbability = directionalChanges ? (risingChanges / directionalChanges) * 100 : 0;
+        label = riseProbability >= 50 ? 'RISE' : 'FALL';
+        confidence = Math.round(Math.max(riseProbability, 100 - riseProbability));
       } else {
         label = strategy === 'High/Low' ? `HIGH - ABOVE ${threshold}` :
           strategy === 'Touch/No Touch' ? 'TOUCH' :
@@ -561,8 +618,7 @@ export function MatchAiApp() {
       setManualSignal({ label, confidence: Math.min(95, Math.max(0, confidence + durationConfidenceAdjustment)) });
       setGeneratingSignal(false);
       setCountdownSeconds(15);
-      generationTimerRef.current = null;
-    }, 5000);
+    }, 1000);
   };
 
   return (
@@ -1057,7 +1113,35 @@ export function MatchAiApp() {
           {generatingSignal && (
             <div className="mt-4 flex flex-col items-center gap-3 rounded-xl border border-dashed border-cyan-500/30 bg-cyan-950/10 p-5 text-cyan-400">
               <span className="h-8 w-8 animate-spin rounded-full border-4 border-cyan-400 border-t-transparent" aria-hidden="true" />
-              <p className="text-center text-xs font-bold uppercase tracking-widest">Analyzing live tick data...</p>
+              <p className="text-center text-xs font-bold uppercase tracking-widest">
+                Analyzing tick snapshot... Frame {scanFrames.length}/5
+              </p>
+            </div>
+          )}
+          {scanFrames.length > 0 && (
+            <div className="mt-4 rounded-xl border border-white/[0.08] bg-[#111f33] p-3">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-300">
+                  {generatingSignal ? 'Live Pattern Scan' : 'Completed Pattern Scan'}
+                </p>
+                <p className="text-[9px] text-slate-500">Pattern index is not a win probability.</p>
+              </div>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                {scanFrames.map((frame) => (
+                  <div key={frame.step} className="rounded-lg border border-white/[0.06] bg-[#0d192b] p-2 text-center">
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Frame {frame.step}</p>
+                    <p className="mt-1 text-lg font-black text-white">
+                      DIGIT <span style={{ color: accentColor }}>{frame.digit}</span>
+                    </p>
+                    <p className="mt-1 text-xs font-black" style={{ color: accentColor }}>
+                      Pattern index {frame.patternScore}%
+                    </p>
+                    <p className="mt-1 text-[9px] text-slate-500">
+                      Observed {frame.occurrenceCount}/{frame.sampleCount}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </section>
