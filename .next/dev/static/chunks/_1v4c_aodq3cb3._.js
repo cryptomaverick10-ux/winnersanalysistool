@@ -125,9 +125,8 @@ function EnvCheck() {
         "EnvCheck.useEffect": ()=>{
             if (__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].env.NEXT_PUBLIC_PREVIEW_MODE === 'true') return;
             if (window.location.pathname.includes('/preview') || window.location.pathname.includes('/edit')) return;
-            if (!__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].env.NEXT_PUBLIC_DERIV_APP_ID) {
-                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$sonner$2f$dist$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["toast"].warning(localize('Waiting for environment variables to be set…'));
-            }
+            if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
+            ;
         }
     }["EnvCheck.useEffect"], [
         localize
@@ -408,7 +407,7 @@ var _s = __turbopack_context__.k.signature();
 ;
 function getAuthConfig(lang) {
     const config = {
-        clientId: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].env.NEXT_PUBLIC_DERIV_APP_ID ?? '',
+        clientId: ("TURBOPACK compile-time value", "1089") ?? '',
         // Empty falls back to the origin so login returns to the host holding the CSRF/PKCE state (#249).
         redirectUri: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].env.NEXT_PUBLIC_DERIV_REDIRECT_URI || (("TURBOPACK compile-time truthy", 1) ? window.location.origin : "TURBOPACK unreachable")
     };

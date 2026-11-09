@@ -2249,6 +2249,14 @@ body {
   border-color: #ffffff26;
 }
 
+.border-emerald-500\/30 {
+  border-color: #00c3904d;
+}
+
+.border-slate-500\/30 {
+  border-color: #787d884d;
+}
+
 .bg-\[\#070b12\] {
   --tw-bg-opacity: 1;
   background-color: rgb(7 11 18 / var(--tw-bg-opacity, 1));
@@ -2459,6 +2467,14 @@ body {
 .bg-\[\#edf2f8\] {
   --tw-bg-opacity: 1;
   background-color: rgb(237 242 248 / var(--tw-bg-opacity, 1));
+}
+
+.bg-emerald-500\/10 {
+  background-color: #00c3901a;
+}
+
+.bg-slate-500\/10 {
+  background-color: #787d881a;
 }
 
 .bg-gradient-to-l {

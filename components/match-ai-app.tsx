@@ -64,7 +64,8 @@ export function MatchAiApp() {
   const [prices, setPrices] = useState<number[]>([]);
   const [digits, setDigits] = useState<number[]>([]);
   const [connected, setConnected] = useState(false);
-  const [reconnecting, setReconnecting] = useState(false);
+  const [clockNow, setClockNow] = useState<number | null>(null);
+  const [derivTimeOffset, setDerivTimeOffset] = useState<number | null>(null);
   const [durationTicks, setDurationTicks] = useState(1);
   const [threshold, setThreshold] = useState(5);
   const [manualSignal, setManualSignal] = useState<ManualSignal | null>(null);
@@ -103,6 +104,18 @@ export function MatchAiApp() {
     return () => window.clearTimeout(timer);
   }, [countdownSeconds]);
 
+  useEffect(() => {
+    if (!connected) {
+      setClockNow(null);
+      setDerivTimeOffset(null);
+      return;
+    }
+
+    setClockNow(Date.now());
+    const timer = window.setInterval(() => setClockNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [connected]);
+
   const chooseAccentColor = (color: string) => {
     setAccentColor(color);
     localStorage.setItem('ceo-hub-accent-color', color);
@@ -126,15 +139,12 @@ export function MatchAiApp() {
     const connect = () => {
       if (disposed) return;
       setConnected(false);
-      setReconnecting(true);
 
       const socket = new WebSocket(DERIV_WS_URL);
       socketRef.current = socket;
 
       socket.onopen = () => {
         if (disposed) return;
-        setConnected(true);
-        setReconnecting(false);
         socket.send(JSON.stringify({ ticks_history: symbol, count: MAX_DIGITS, end: 'latest', style: 'ticks' }));
       };
 
@@ -143,11 +153,10 @@ export function MatchAiApp() {
         const message = JSON.parse(event.data) as {
           error?: unknown;
           history?: { prices?: number[] };
-          tick?: { quote: number | string; subscription_id?: string | number };
+          tick?: { quote: number | string; epoch?: number; subscription_id?: string | number };
         };
         if (message.error) {
           setConnected(false);
-          setReconnecting(true);
           socket.close();
           return;
         }
@@ -167,6 +176,10 @@ export function MatchAiApp() {
           const price = Number(message.tick.quote);
           if (!Number.isFinite(price)) return;
           const digit = parseLastDigit(price);
+          setConnected(true);
+          if (typeof message.tick.epoch === 'number' && Number.isFinite(message.tick.epoch)) {
+            setDerivTimeOffset(message.tick.epoch * 1000 - Date.now());
+          }
           setLivePrice(price);
           setPrices((current) => [...current, price].slice(-MAX_DIGITS));
           if (digit !== null) {
@@ -178,13 +191,11 @@ export function MatchAiApp() {
       socket.onerror = () => {
         if (disposed) return;
         setConnected(false);
-        setReconnecting(true);
         socket.close();
       };
       socket.onclose = () => {
         if (disposed) return;
         setConnected(false);
-        setReconnecting(true);
         reconnectTimerRef.current = setTimeout(connect, 1500);
       };
     };
@@ -703,11 +714,58 @@ export function MatchAiApp() {
           </div>
         </section>
 
-        <div className={`mt-3 rounded-lg px-4 py-2.5 text-center text-sm font-black text-white ${
-          connected ? '' : 'bg-slate-500'
-        }`} style={connected ? { backgroundColor: accentColor } : undefined}>
-          {connected ? 'Connected' : reconnecting ? 'Disconnected / Reconnecting' : 'Disconnected'}
+        <div
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          className={`mt-3 flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-black ${
+            connected
+              ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
+              : 'border-slate-500/30 bg-slate-500/10 text-slate-400'
+          }`}
+        >
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            className={`h-5 w-5 shrink-0 ${connected ? 'animate-pulse' : ''}`}
+            fill="currentColor"
+          >
+            <rect x="3" y="16" width="3" height="5" rx="1" />
+            <rect x="8" y="13" width="3" height="8" rx="1" />
+            <rect x="13" y="9" width="3" height="12" rx="1" />
+            <rect x="18" y="5" width="3" height="16" rx="1" />
+            {!connected && (
+              <path d="M4 4 20 20" fill="none" stroke="currentColor" strokeWidth="2" />
+            )}
+          </svg>
+          <span>{connected ? 'Connected' : 'Not connected / Offline'}</span>
         </div>
+
+        {connected && clockNow !== null && derivTimeOffset !== null && (
+          <div className="mt-2 grid grid-cols-2 gap-2" aria-label="Live clocks">
+            <div className="rounded-lg border border-white/[0.08] bg-[#0d192b] px-3 py-2 text-center">
+              <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-slate-400">Deriv Time (UTC)</p>
+              <time className="mt-1 block font-mono text-sm font-black tabular-nums text-white">
+                {new Date(clockNow + derivTimeOffset).toLocaleTimeString('en-GB', {
+                  timeZone: 'UTC',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                })}
+              </time>
+            </div>
+            <div className="rounded-lg border border-white/[0.08] bg-[#0d192b] px-3 py-2 text-center">
+              <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-slate-400">Local Time</p>
+              <time className="mt-1 block font-mono text-sm font-black tabular-nums text-white">
+                {new Date(clockNow).toLocaleTimeString(undefined, {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                })}
+              </time>
+            </div>
+          </div>
+        )}
 
         <section className="mt-4 rounded-2xl border border-white/[0.08] bg-[#0d192b] p-3 shadow-[0_16px_40px_rgba(0,0,0,0.16)] sm:p-4">
           <h2 className="text-sm font-black text-white">Auto AI Patterns</h2>
