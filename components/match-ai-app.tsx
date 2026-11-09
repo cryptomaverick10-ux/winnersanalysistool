@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { analyzeMatchDigits, parseLastDigit, type MatchAiResult } from '@/lib/match-ai';
 
-const DERIV_WS_URL = 'wss://ws.derivws.com/websockets/v3?app_id=1089';
+const DERIV_WS_URL = `wss://ws.derivws.com/websockets/v3?app_id=${process.env.NEXT_PUBLIC_DERIV_APP_ID || 1089}`;
 const MAX_DIGITS = 300;
 const TARGET_DIGIT = 8;
 const ACCENT_COLORS = [
@@ -65,8 +65,6 @@ export function MatchAiApp() {
   const [digits, setDigits] = useState<number[]>([]);
   const [connected, setConnected] = useState(false);
   const [reconnecting, setReconnecting] = useState(false);
-  const [connecting, setConnecting] = useState(false);
-  const [dataFeedRequested, setDataFeedRequested] = useState(false);
   const [durationTicks, setDurationTicks] = useState(1);
   const [threshold, setThreshold] = useState(5);
   const [manualSignal, setManualSignal] = useState<ManualSignal | null>(null);
@@ -122,30 +120,26 @@ export function MatchAiApp() {
     document.documentElement.lang = value === 'French' ? 'fr' : value === 'Spanish' ? 'es' : 'en';
   };
 
-  const refreshApplication = () => {
-    window.location.reload();
-  };
-
   useEffect(() => {
     let disposed = false;
 
     const connect = () => {
-      if (disposed || !dataFeedRequested) return;
+      if (disposed) return;
       setConnected(false);
       setReconnecting(true);
-      setConnecting(true);
 
       const socket = new WebSocket(DERIV_WS_URL);
       socketRef.current = socket;
 
       socket.onopen = () => {
+        if (disposed) return;
         setConnected(true);
         setReconnecting(false);
-        setConnecting(false);
         socket.send(JSON.stringify({ ticks_history: symbol, count: MAX_DIGITS, end: 'latest', style: 'ticks' }));
       };
 
       socket.onmessage = (event) => {
+        if (disposed) return;
         const message = JSON.parse(event.data) as {
           error?: unknown;
           history?: { prices?: number[] };
@@ -154,7 +148,7 @@ export function MatchAiApp() {
         if (message.error) {
           setConnected(false);
           setReconnecting(true);
-          setConnecting(false);
+          socket.close();
           return;
         }
 
@@ -182,26 +176,19 @@ export function MatchAiApp() {
       };
 
       socket.onerror = () => {
+        if (disposed) return;
         setConnected(false);
         setReconnecting(true);
-        setConnecting(false);
+        socket.close();
       };
       socket.onclose = () => {
+        if (disposed) return;
         setConnected(false);
-        setConnecting(false);
-        setReconnecting(dataFeedRequested);
-        if (!disposed) reconnectTimerRef.current = setTimeout(connect, 1500);
+        setReconnecting(true);
+        reconnectTimerRef.current = setTimeout(connect, 1500);
       };
     };
 
-    if (!dataFeedRequested) {
-      setConnected(false);
-      setReconnecting(false);
-      setConnecting(false);
-      socketRef.current?.close();
-      socketRef.current = null;
-      return;
-    }
     connect();
     return () => {
       disposed = true;
@@ -209,7 +196,7 @@ export function MatchAiApp() {
       socketRef.current?.close();
       socketRef.current = null;
     };
-  }, [symbol, dataFeedRequested]);
+  }, [symbol]);
 
   useEffect(() => {
     setManualSignal(null);
@@ -433,20 +420,6 @@ export function MatchAiApp() {
     stopScanner();
   };
 
-  const toggleDataFeed = () => {
-    if (dataFeedRequested) {
-      setDataFeedRequested(false);
-      setConnected(false);
-      setConnecting(false);
-      setReconnecting(false);
-      socketRef.current?.close();
-      socketRef.current = null;
-      return;
-    }
-    setDataFeedRequested(true);
-    setConnecting(true);
-  };
-
   const generateSignal = () => {
     if (!connected || digits.length < 25 || generatingSignal || countdownSeconds > 0) return;
     setGeneratingSignal(true);
@@ -572,13 +545,6 @@ export function MatchAiApp() {
               <option>Spanish</option>
               <option>Portuguese</option>
             </select>
-            <button
-              type="button"
-              onClick={refreshApplication}
-              className="rounded-lg border border-white/[0.08] bg-[#111f33] px-3 py-2 text-xs font-black text-slate-300 transition hover:border-white/[0.18]"
-            >
-              Login / Refresh
-            </button>
             <label className="text-xs font-bold text-slate-400" htmlFor="market">Market</label>
             <select
               id="market"
@@ -590,30 +556,6 @@ export function MatchAiApp() {
             </select>
           </div>
         </header>
-
-        <section className="mt-4 flex flex-col gap-3 rounded-2xl border border-white/[0.08] bg-[#0d192b] px-4 py-4 shadow-[0_16px_40px_rgba(0,0,0,0.16)] sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm font-black text-white">Data Feed Connection</p>
-            <p className="mt-1 text-xs text-slate-400">
-              {connecting
-                ? 'Establishing connection to the live market...'
-                : connected
-                  ? 'Live market connection established'
-                  : reconnecting
-                    ? 'Connection lost. Attempting to reconnect...'
-                    : 'Establish Connections to enable live analysis'}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={toggleDataFeed}
-            disabled={connecting}
-            className="h-11 min-w-40 rounded-lg px-4 text-xs font-black text-white shadow-sm transition disabled:cursor-wait"
-            style={{ backgroundColor: connecting ? '#64748b' : accentColor }}
-          >
-            {connecting ? 'Connecting...' : connected ? 'Disconnect Feed' : dataFeedRequested ? 'Reconnect Feed' : 'Connect to Feed'}
-          </button>
-        </section>
 
         <section className="mt-4 overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0d192b] shadow-[0_16px_40px_rgba(0,0,0,0.16)]">
           <div className="flex items-center justify-between border-b border-white/[0.08] px-4 py-4">
@@ -874,7 +816,7 @@ export function MatchAiApp() {
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Signal Generator</p>
               <p className="mt-1 text-xs font-bold text-slate-300">
-                {connected ? `${strategy} analysis for ${durationTicks} ${durationTicks === 1 ? 'tick' : 'ticks'}` : 'Connect the data feed to generate a signal'}
+                {connected ? `${strategy} analysis for ${durationTicks} ${durationTicks === 1 ? 'tick' : 'ticks'}` : 'Waiting for live market ticks...'}
               </p>
             </div>
           <button

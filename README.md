@@ -2,6 +2,8 @@
 
 A self-hosted digit trading app built on the Deriv WebSocket API. Supports Matches/Differs, Over/Under, and Even/Odd contract types with real-time tick streaming and digit frequency statistics.
 
+The live market analysis dashboard connects to Deriv's public WebSocket automatically when opened; no manual feed connection or page refresh is required.
+
 ## Prerequisites
 
 - Node.js 18.18 or later

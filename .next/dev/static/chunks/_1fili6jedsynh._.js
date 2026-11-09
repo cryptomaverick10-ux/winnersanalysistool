@@ -6,6 +6,7 @@ __turbopack_context__.s([
     "MatchAiApp",
     ()=>MatchAiApp
 ]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = /*#__PURE__*/ __turbopack_context__.i("[project]/node_modules/next/dist/build/polyfills/process.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/styled-jsx/style.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
@@ -16,7 +17,7 @@ var _s = __turbopack_context__.k.signature();
 ;
 ;
 ;
-const DERIV_WS_URL = 'wss://ws.derivws.com/websockets/v3?app_id=1089';
+const DERIV_WS_URL = `wss://ws.derivws.com/websockets/v3?app_id=${__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].env.NEXT_PUBLIC_DERIV_APP_ID || 1089}`;
 const MAX_DIGITS = 300;
 const TARGET_DIGIT = 8;
 const ACCENT_COLORS = [
@@ -108,8 +109,6 @@ function MatchAiApp() {
     const [digits, setDigits] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
     const [connected, setConnected] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const [reconnecting, setReconnecting] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
-    const [connecting, setConnecting] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
-    const [dataFeedRequested, setDataFeedRequested] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const [durationTicks, setDurationTicks] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(1);
     const [threshold, setThreshold] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(5);
     const [manualSignal, setManualSignal] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
@@ -178,25 +177,21 @@ function MatchAiApp() {
         localStorage.setItem('ceo-hub-language', value);
         document.documentElement.lang = value === 'French' ? 'fr' : value === 'Spanish' ? 'es' : 'en';
     };
-    const refreshApplication = ()=>{
-        window.location.reload();
-    };
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "MatchAiApp.useEffect": ()=>{
             let disposed = false;
             const connect = {
                 "MatchAiApp.useEffect.connect": ()=>{
-                    if (disposed || !dataFeedRequested) return;
+                    if (disposed) return;
                     setConnected(false);
                     setReconnecting(true);
-                    setConnecting(true);
                     const socket = new WebSocket(DERIV_WS_URL);
                     socketRef.current = socket;
                     socket.onopen = ({
                         "MatchAiApp.useEffect.connect": ()=>{
+                            if (disposed) return;
                             setConnected(true);
                             setReconnecting(false);
-                            setConnecting(false);
                             socket.send(JSON.stringify({
                                 ticks_history: symbol,
                                 count: MAX_DIGITS,
@@ -207,11 +202,12 @@ function MatchAiApp() {
                     })["MatchAiApp.useEffect.connect"];
                     socket.onmessage = ({
                         "MatchAiApp.useEffect.connect": (event)=>{
+                            if (disposed) return;
                             const message = JSON.parse(event.data);
                             if (message.error) {
                                 setConnected(false);
                                 setReconnecting(true);
-                                setConnecting(false);
+                                socket.close();
                                 return;
                             }
                             if (message.history?.prices) {
@@ -255,29 +251,22 @@ function MatchAiApp() {
                     })["MatchAiApp.useEffect.connect"];
                     socket.onerror = ({
                         "MatchAiApp.useEffect.connect": ()=>{
+                            if (disposed) return;
                             setConnected(false);
                             setReconnecting(true);
-                            setConnecting(false);
+                            socket.close();
                         }
                     })["MatchAiApp.useEffect.connect"];
                     socket.onclose = ({
                         "MatchAiApp.useEffect.connect": ()=>{
+                            if (disposed) return;
                             setConnected(false);
-                            setConnecting(false);
-                            setReconnecting(dataFeedRequested);
-                            if (!disposed) reconnectTimerRef.current = setTimeout(connect, 1500);
+                            setReconnecting(true);
+                            reconnectTimerRef.current = setTimeout(connect, 1500);
                         }
                     })["MatchAiApp.useEffect.connect"];
                 }
             }["MatchAiApp.useEffect.connect"];
-            if (!dataFeedRequested) {
-                setConnected(false);
-                setReconnecting(false);
-                setConnecting(false);
-                socketRef.current?.close();
-                socketRef.current = null;
-                return;
-            }
             connect();
             return ({
                 "MatchAiApp.useEffect": ()=>{
@@ -289,8 +278,7 @@ function MatchAiApp() {
             })["MatchAiApp.useEffect"];
         }
     }["MatchAiApp.useEffect"], [
-        symbol,
-        dataFeedRequested
+        symbol
     ]);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "MatchAiApp.useEffect": ()=>{
@@ -562,19 +550,6 @@ function MatchAiApp() {
         setSymbol(bestMarket.symbol);
         stopScanner();
     };
-    const toggleDataFeed = ()=>{
-        if (dataFeedRequested) {
-            setDataFeedRequested(false);
-            setConnected(false);
-            setConnecting(false);
-            setReconnecting(false);
-            socketRef.current?.close();
-            socketRef.current = null;
-            return;
-        }
-        setDataFeedRequested(true);
-        setConnecting(true);
-    };
     const generateSignal = ()=>{
         if (!connected || digits.length < 25 || generatingSignal || countdownSeconds > 0) return;
         setGeneratingSignal(true);
@@ -641,7 +616,7 @@ function MatchAiApp() {
                                     children: "CEO HUB Analysis"
                                 }, void 0, false, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 519,
+                                    lineNumber: 492,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
@@ -649,13 +624,13 @@ function MatchAiApp() {
                                     children: "Live Market Analysis"
                                 }, void 0, false, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 520,
+                                    lineNumber: 493,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 518,
+                            lineNumber: 491,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -678,7 +653,7 @@ function MatchAiApp() {
                                                 className: "jsx-fe9665299295552e" + " " + "h-6 w-6 rounded-full border-2 border-white shadow-sm ring-1 ring-slate-200"
                                             }, color, false, {
                                                 fileName: "[project]/components/match-ai-app.tsx",
-                                                lineNumber: 525,
+                                                lineNumber: 498,
                                                 columnNumber: 17
                                             }, this)),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
@@ -690,7 +665,7 @@ function MatchAiApp() {
                                                     children: "+"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/match-ai-app.tsx",
-                                                    lineNumber: 536,
+                                                    lineNumber: 509,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -701,19 +676,19 @@ function MatchAiApp() {
                                                     className: "jsx-fe9665299295552e" + " " + "absolute inset-0 cursor-pointer opacity-0"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/match-ai-app.tsx",
-                                                    lineNumber: 537,
+                                                    lineNumber: 510,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 535,
+                                            lineNumber: 508,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 523,
+                                    lineNumber: 496,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -729,7 +704,7 @@ function MatchAiApp() {
                                             children: "Dark"
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 547,
+                                            lineNumber: 520,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -742,13 +717,13 @@ function MatchAiApp() {
                                             children: "Light"
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 555,
+                                            lineNumber: 528,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 546,
+                                    lineNumber: 519,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
@@ -762,7 +737,7 @@ function MatchAiApp() {
                                             children: "English"
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 570,
+                                            lineNumber: 543,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -770,7 +745,7 @@ function MatchAiApp() {
                                             children: "French"
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 571,
+                                            lineNumber: 544,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -778,7 +753,7 @@ function MatchAiApp() {
                                             children: "Spanish"
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 572,
+                                            lineNumber: 545,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -786,23 +761,13 @@ function MatchAiApp() {
                                             children: "Portuguese"
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 573,
+                                            lineNumber: 546,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 564,
-                                    columnNumber: 13
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                    type: "button",
-                                    onClick: refreshApplication,
-                                    className: "jsx-fe9665299295552e" + " " + "rounded-lg border border-white/[0.08] bg-[#111f33] px-3 py-2 text-xs font-black text-slate-300 transition hover:border-white/[0.18]",
-                                    children: "Login / Refresh"
-                                }, void 0, false, {
-                                    fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 575,
+                                    lineNumber: 537,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
@@ -811,7 +776,7 @@ function MatchAiApp() {
                                     children: "Market"
                                 }, void 0, false, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 582,
+                                    lineNumber: 548,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
@@ -825,72 +790,24 @@ function MatchAiApp() {
                                             children: name
                                         }, value, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 589,
+                                            lineNumber: 555,
                                             columnNumber: 47
                                         }, this))
                                 }, void 0, false, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 583,
+                                    lineNumber: 549,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 522,
+                            lineNumber: 495,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/match-ai-app.tsx",
-                    lineNumber: 517,
-                    columnNumber: 9
-                }, this),
-                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
-                    className: "jsx-fe9665299295552e" + " " + "mt-4 flex flex-col gap-3 rounded-2xl border border-white/[0.08] bg-[#0d192b] px-4 py-4 shadow-[0_16px_40px_rgba(0,0,0,0.16)] sm:flex-row sm:items-center sm:justify-between",
-                    children: [
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "jsx-fe9665299295552e",
-                            children: [
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                    className: "jsx-fe9665299295552e" + " " + "text-sm font-black text-white",
-                                    children: "Data Feed Connection"
-                                }, void 0, false, {
-                                    fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 596,
-                                    columnNumber: 13
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                    className: "jsx-fe9665299295552e" + " " + "mt-1 text-xs text-slate-400",
-                                    children: connecting ? 'Establishing connection to the live market...' : connected ? 'Live market connection established' : reconnecting ? 'Connection lost. Attempting to reconnect...' : 'Establish Connections to enable live analysis'
-                                }, void 0, false, {
-                                    fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 597,
-                                    columnNumber: 13
-                                }, this)
-                            ]
-                        }, void 0, true, {
-                            fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 595,
-                            columnNumber: 11
-                        }, this),
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                            type: "button",
-                            onClick: toggleDataFeed,
-                            disabled: connecting,
-                            style: {
-                                backgroundColor: connecting ? '#64748b' : accentColor
-                            },
-                            className: "jsx-fe9665299295552e" + " " + "h-11 min-w-40 rounded-lg px-4 text-xs font-black text-white shadow-sm transition disabled:cursor-wait",
-                            children: connecting ? 'Connecting...' : connected ? 'Disconnect Feed' : dataFeedRequested ? 'Reconnect Feed' : 'Connect to Feed'
-                        }, void 0, false, {
-                            fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 607,
-                            columnNumber: 11
-                        }, this)
-                    ]
-                }, void 0, true, {
-                    fileName: "[project]/components/match-ai-app.tsx",
-                    lineNumber: 594,
+                    lineNumber: 490,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
@@ -910,7 +827,7 @@ function MatchAiApp() {
                                             children: "Recency Intelligence"
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 621,
+                                            lineNumber: 563,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
@@ -918,13 +835,13 @@ function MatchAiApp() {
                                             children: "AI Tick Sequence & Pattern Recency Detector"
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 622,
+                                            lineNumber: 564,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 620,
+                                    lineNumber: 562,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -935,13 +852,13 @@ function MatchAiApp() {
                                     children: connected && digits.length >= 25 ? `${tickSequenceAnalysis.patternSamples} SAMPLES` : 'WAIT - 0%'
                                 }, void 0, false, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 624,
+                                    lineNumber: 566,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 619,
+                            lineNumber: 561,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -955,7 +872,7 @@ function MatchAiApp() {
                                             children: "Current Sequence"
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 632,
+                                            lineNumber: 574,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -963,13 +880,13 @@ function MatchAiApp() {
                                             children: connected && tickSequenceAnalysis.sequence.length > 0 ? tickSequenceAnalysis.sequence.join('  >  ') : 'WAIT'
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 633,
+                                            lineNumber: 575,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 631,
+                                    lineNumber: 573,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -980,7 +897,7 @@ function MatchAiApp() {
                                             children: "Detected Pattern"
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 638,
+                                            lineNumber: 580,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -988,13 +905,13 @@ function MatchAiApp() {
                                             children: connected && digits.length >= 25 ? `${tickSequenceAnalysis.pattern.join(' -> ')} Recency` : 'Collecting Sequence'
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 639,
+                                            lineNumber: 581,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 637,
+                                    lineNumber: 579,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1005,7 +922,7 @@ function MatchAiApp() {
                                             children: "Predicted Side"
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 644,
+                                            lineNumber: 586,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1016,13 +933,13 @@ function MatchAiApp() {
                                             children: connected && digits.length >= 25 ? `${tickSequenceAnalysis.nextEven ? 'EVEN' : 'ODD'} - ${Math.round(Math.max(tickSequenceAnalysis.evenProbability, tickSequenceAnalysis.oddProbability))}%` : 'WAIT - 0%'
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 645,
+                                            lineNumber: 587,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 643,
+                                    lineNumber: 585,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1033,7 +950,7 @@ function MatchAiApp() {
                                             children: "Recency Status"
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 652,
+                                            lineNumber: 594,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1041,25 +958,25 @@ function MatchAiApp() {
                                             children: connected && digits.length >= 25 ? `Overdue ${tickSequenceAnalysis.overdueDigit} / Hot ${tickSequenceAnalysis.overrepresentedDigit.digit}` : 'STANDBY'
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 653,
+                                            lineNumber: 595,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 651,
+                                    lineNumber: 593,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 630,
+                            lineNumber: 572,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/match-ai-app.tsx",
-                    lineNumber: 618,
+                    lineNumber: 560,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
@@ -1078,7 +995,7 @@ function MatchAiApp() {
                                             className: "jsx-fe9665299295552e" + " " + "absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 665,
+                                            lineNumber: 607,
                                             columnNumber: 29
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1088,13 +1005,13 @@ function MatchAiApp() {
                                             className: "jsx-fe9665299295552e" + " " + `relative inline-flex h-2.5 w-2.5 rounded-full ${connected ? '' : 'bg-slate-500'}`
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 666,
+                                            lineNumber: 608,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 664,
+                                    lineNumber: 606,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
@@ -1102,13 +1019,13 @@ function MatchAiApp() {
                                     children: "LIVE SPOT TICKER"
                                 }, void 0, false, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 668,
+                                    lineNumber: 610,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 663,
+                            lineNumber: 605,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1122,7 +1039,7 @@ function MatchAiApp() {
                                             children: "Volatility in Use"
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 672,
+                                            lineNumber: 614,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1130,13 +1047,13 @@ function MatchAiApp() {
                                             children: marketName
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 673,
+                                            lineNumber: 615,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 671,
+                                    lineNumber: 613,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1147,7 +1064,7 @@ function MatchAiApp() {
                                             children: livePrice === null ? '--' : livePrice.toFixed(4)
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 676,
+                                            lineNumber: 618,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1160,30 +1077,30 @@ function MatchAiApp() {
                                                     children: digit
                                                 }, `${digit}-${index}`, false, {
                                                     fileName: "[project]/components/match-ai-app.tsx",
-                                                    lineNumber: 681,
+                                                    lineNumber: 623,
                                                     columnNumber: 19
                                                 }, this))
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 679,
+                                            lineNumber: 621,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 675,
+                                    lineNumber: 617,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 670,
+                            lineNumber: 612,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/match-ai-app.tsx",
-                    lineNumber: 662,
+                    lineNumber: 604,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
@@ -1200,7 +1117,7 @@ function MatchAiApp() {
                                             children: "Live Volatility Scanner"
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 699,
+                                            lineNumber: 641,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
@@ -1208,13 +1125,13 @@ function MatchAiApp() {
                                             children: isScanning ? 'Scanning volatility markets...' : bestMarket ? 'Best volatility market found' : 'Scan all volatility markets'
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 700,
+                                            lineNumber: 642,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 698,
+                                    lineNumber: 640,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1227,13 +1144,13 @@ function MatchAiApp() {
                                     children: isScanning ? 'Stop Scan' : 'Scan Best Volatility'
                                 }, void 0, false, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 704,
+                                    lineNumber: 646,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 697,
+                            lineNumber: 639,
                             columnNumber: 11
                         }, this),
                         bestMarket && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1256,7 +1173,7 @@ function MatchAiApp() {
                                             children: "Recommended Market"
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 722,
+                                            lineNumber: 664,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1264,13 +1181,13 @@ function MatchAiApp() {
                                             children: bestMarket.name
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 723,
+                                            lineNumber: 665,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 721,
+                                    lineNumber: 663,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1284,7 +1201,7 @@ function MatchAiApp() {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 726,
+                                            lineNumber: 668,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1292,19 +1209,19 @@ function MatchAiApp() {
                                             children: "Scanner Score - Click to use"
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 727,
+                                            lineNumber: 669,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 725,
+                                    lineNumber: 667,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 715,
+                            lineNumber: 657,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1323,7 +1240,7 @@ function MatchAiApp() {
                                             children: result.name
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 744,
+                                            lineNumber: 686,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1331,24 +1248,24 @@ function MatchAiApp() {
                                             children: result.score ? `${result.score}%` : '--'
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 745,
+                                            lineNumber: 687,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, result.symbol, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 734,
+                                    lineNumber: 676,
                                     columnNumber: 15
                                 }, this))
                         }, void 0, false, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 732,
+                            lineNumber: 674,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/match-ai-app.tsx",
-                    lineNumber: 696,
+                    lineNumber: 638,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
@@ -1362,7 +1279,7 @@ function MatchAiApp() {
                                     children: "Live Market"
                                 }, void 0, false, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 753,
+                                    lineNumber: 695,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1370,13 +1287,13 @@ function MatchAiApp() {
                                     children: livePrice === null ? '--' : livePrice.toFixed(5)
                                 }, void 0, false, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 754,
+                                    lineNumber: 696,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 752,
+                            lineNumber: 694,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1387,7 +1304,7 @@ function MatchAiApp() {
                                     children: marketName
                                 }, void 0, false, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 759,
+                                    lineNumber: 701,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1398,19 +1315,19 @@ function MatchAiApp() {
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 760,
+                                    lineNumber: 702,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 758,
+                            lineNumber: 700,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/match-ai-app.tsx",
-                    lineNumber: 751,
+                    lineNumber: 693,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1421,7 +1338,7 @@ function MatchAiApp() {
                     children: connected ? 'Connected' : reconnecting ? 'Disconnected / Reconnecting' : 'Disconnected'
                 }, void 0, false, {
                     fileName: "[project]/components/match-ai-app.tsx",
-                    lineNumber: 764,
+                    lineNumber: 706,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
@@ -1432,7 +1349,7 @@ function MatchAiApp() {
                             children: "Auto AI Patterns"
                         }, void 0, false, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 771,
+                            lineNumber: 713,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1477,7 +1394,7 @@ function MatchAiApp() {
                                             children: title
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 788,
+                                            lineNumber: 730,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1490,24 +1407,24 @@ function MatchAiApp() {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 789,
+                                            lineNumber: 731,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, title, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 779,
+                                    lineNumber: 721,
                                     columnNumber: 15
                                 }, this))
                         }, void 0, false, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 772,
+                            lineNumber: 714,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/match-ai-app.tsx",
-                    lineNumber: 770,
+                    lineNumber: 712,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
@@ -1518,7 +1435,7 @@ function MatchAiApp() {
                             children: "Strategy"
                         }, void 0, false, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 796,
+                            lineNumber: 738,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1533,12 +1450,12 @@ function MatchAiApp() {
                                     children: item
                                 }, item, false, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 799,
+                                    lineNumber: 741,
                                     columnNumber: 15
                                 }, this))
                         }, void 0, false, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 797,
+                            lineNumber: 739,
                             columnNumber: 11
                         }, this),
                         (strategy === 'Over/Under' || strategy === 'High/Low' || strategy === 'Barrier') && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1549,7 +1466,7 @@ function MatchAiApp() {
                                     children: "Threshold"
                                 }, void 0, false, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 815,
+                                    lineNumber: 757,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
@@ -1564,24 +1481,24 @@ function MatchAiApp() {
                                             children: value
                                         }, value, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 821,
+                                            lineNumber: 763,
                                             columnNumber: 84
                                         }, this))
                                 }, void 0, false, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 816,
+                                    lineNumber: 758,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 814,
+                            lineNumber: 756,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/match-ai-app.tsx",
-                    lineNumber: 795,
+                    lineNumber: 737,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
@@ -1595,7 +1512,7 @@ function MatchAiApp() {
                                     children: "Duration (1 To 5 Ticks)"
                                 }, void 0, false, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 829,
+                                    lineNumber: 771,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1611,13 +1528,13 @@ function MatchAiApp() {
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 830,
+                                    lineNumber: 772,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 828,
+                            lineNumber: 770,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1646,7 +1563,7 @@ function MatchAiApp() {
                                             children: ticks
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 849,
+                                            lineNumber: 791,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1654,24 +1571,24 @@ function MatchAiApp() {
                                             children: ticks === 1 ? '1 Tick' : `${ticks} Ticks`
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 850,
+                                            lineNumber: 792,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, ticks, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 836,
+                                    lineNumber: 778,
                                     columnNumber: 15
                                 }, this))
                         }, void 0, false, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 834,
+                            lineNumber: 776,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/match-ai-app.tsx",
-                    lineNumber: 827,
+                    lineNumber: 769,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
@@ -1685,7 +1602,7 @@ function MatchAiApp() {
                                     children: "Live Digits"
                                 }, void 0, false, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 858,
+                                    lineNumber: 800,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1696,13 +1613,13 @@ function MatchAiApp() {
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 859,
+                                    lineNumber: 801,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 857,
+                            lineNumber: 799,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1715,18 +1632,18 @@ function MatchAiApp() {
                                     children: digit
                                 }, `${digit}-${index}`, false, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 863,
+                                    lineNumber: 805,
                                     columnNumber: 15
                                 }, this))
                         }, void 0, false, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 861,
+                            lineNumber: 803,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/match-ai-app.tsx",
-                    lineNumber: 856,
+                    lineNumber: 798,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
@@ -1742,21 +1659,21 @@ function MatchAiApp() {
                                         children: "Signal Generator"
                                     }, void 0, false, {
                                         fileName: "[project]/components/match-ai-app.tsx",
-                                        lineNumber: 875,
+                                        lineNumber: 817,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                         className: "jsx-fe9665299295552e" + " " + "mt-1 text-xs font-bold text-slate-300",
-                                        children: connected ? `${strategy} analysis for ${durationTicks} ${durationTicks === 1 ? 'tick' : 'ticks'}` : 'Connect the data feed to generate a signal'
+                                        children: connected ? `${strategy} analysis for ${durationTicks} ${durationTicks === 1 ? 'tick' : 'ticks'}` : 'Waiting for live market ticks...'
                                     }, void 0, false, {
                                         fileName: "[project]/components/match-ai-app.tsx",
-                                        lineNumber: 876,
+                                        lineNumber: 818,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/match-ai-app.tsx",
-                                lineNumber: 874,
+                                lineNumber: 816,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1770,18 +1687,18 @@ function MatchAiApp() {
                                 children: generatingSignal ? 'Generating Signal...' : countdownSeconds > 0 ? `Cooldown - ${countdownSeconds}s` : 'Generate Signal'
                             }, void 0, false, {
                                 fileName: "[project]/components/match-ai-app.tsx",
-                                lineNumber: 880,
+                                lineNumber: 822,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/match-ai-app.tsx",
-                        lineNumber: 873,
+                        lineNumber: 815,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/components/match-ai-app.tsx",
-                    lineNumber: 872,
+                    lineNumber: 814,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
@@ -1792,7 +1709,7 @@ function MatchAiApp() {
                             children: "Signal Result"
                         }, void 0, false, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 893,
+                            lineNumber: 835,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1800,7 +1717,7 @@ function MatchAiApp() {
                             children: "Recommended Signal"
                         }, void 0, false, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 894,
+                            lineNumber: 836,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
@@ -1811,7 +1728,7 @@ function MatchAiApp() {
                             children: manualSignal?.label ?? `${strategy.toUpperCase()} - WAIT`
                         }, void 0, false, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 895,
+                            lineNumber: 837,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1822,7 +1739,7 @@ function MatchAiApp() {
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 898,
+                            lineNumber: 840,
                             columnNumber: 11
                         }, this),
                         manualSignal && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1839,18 +1756,18 @@ function MatchAiApp() {
                                 children: countdownSeconds > 0 ? `Next Signal: ${countdownSeconds}s` : 'Analysis Ready'
                             }, void 0, false, {
                                 fileName: "[project]/components/match-ai-app.tsx",
-                                lineNumber: 903,
+                                lineNumber: 845,
                                 columnNumber: 15
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 902,
+                            lineNumber: 844,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/match-ai-app.tsx",
-                    lineNumber: 892,
+                    lineNumber: 834,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
@@ -1870,7 +1787,7 @@ function MatchAiApp() {
                                                     children: "Digits Graph"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/match-ai-app.tsx",
-                                                    lineNumber: 914,
+                                                    lineNumber: 856,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
@@ -1878,13 +1795,13 @@ function MatchAiApp() {
                                                     children: "Last 100 Digits"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/match-ai-app.tsx",
-                                                    lineNumber: 915,
+                                                    lineNumber: 857,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 913,
+                                            lineNumber: 855,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1895,13 +1812,13 @@ function MatchAiApp() {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 917,
+                                            lineNumber: 859,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 912,
+                                    lineNumber: 854,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1917,7 +1834,7 @@ function MatchAiApp() {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/match-ai-app.tsx",
-                                                    lineNumber: 922,
+                                                    lineNumber: 864,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1929,7 +1846,7 @@ function MatchAiApp() {
                                                     className: "jsx-fe9665299295552e" + " " + "mx-auto w-full max-w-7 rounded-t-md transition-all duration-300"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/match-ai-app.tsx",
-                                                    lineNumber: 923,
+                                                    lineNumber: 865,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1937,24 +1854,24 @@ function MatchAiApp() {
                                                     children: item.digit
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/match-ai-app.tsx",
-                                                    lineNumber: 931,
+                                                    lineNumber: 873,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, item.digit, true, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 921,
+                                            lineNumber: 863,
                                             columnNumber: 17
                                         }, this))
                                 }, void 0, false, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 919,
+                                    lineNumber: 861,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 911,
+                            lineNumber: 853,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1968,7 +1885,7 @@ function MatchAiApp() {
                                             children: "AI Machine"
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 939,
+                                            lineNumber: 881,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1978,13 +1895,13 @@ function MatchAiApp() {
                                             className: "jsx-fe9665299295552e" + " " + `h-2 w-2 rounded-full ${connected ? 'animate-pulse' : 'bg-slate-500'}`
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 940,
+                                            lineNumber: 882,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 938,
+                                    lineNumber: 880,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2004,12 +1921,12 @@ function MatchAiApp() {
                                                 children: "AI"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/match-ai-app.tsx",
-                                                lineNumber: 947,
+                                                lineNumber: 889,
                                                 columnNumber: 17
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 943,
+                                            lineNumber: 885,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2017,7 +1934,7 @@ function MatchAiApp() {
                                             children: connected ? 'ENGINE ACTIVE' : 'ENGINE STANDBY'
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 954,
+                                            lineNumber: 896,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2025,13 +1942,13 @@ function MatchAiApp() {
                                             children: digits.length >= 25 ? 'Pattern analysis ready' : 'Collecting market data'
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 955,
+                                            lineNumber: 897,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 942,
+                                    lineNumber: 884,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2045,7 +1962,7 @@ function MatchAiApp() {
                                                     children: "Samples"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/match-ai-app.tsx",
-                                                    lineNumber: 959,
+                                                    lineNumber: 901,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2053,13 +1970,13 @@ function MatchAiApp() {
                                                     children: digits.length
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/match-ai-app.tsx",
-                                                    lineNumber: 960,
+                                                    lineNumber: 902,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 958,
+                                            lineNumber: 900,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2070,7 +1987,7 @@ function MatchAiApp() {
                                                     children: "Confidence"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/match-ai-app.tsx",
-                                                    lineNumber: 963,
+                                                    lineNumber: 905,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2081,31 +1998,31 @@ function MatchAiApp() {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/match-ai-app.tsx",
-                                                    lineNumber: 964,
+                                                    lineNumber: 906,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 962,
+                                            lineNumber: 904,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 957,
+                                    lineNumber: 899,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 937,
+                            lineNumber: 879,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/match-ai-app.tsx",
-                    lineNumber: 910,
+                    lineNumber: 852,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
@@ -2125,7 +2042,7 @@ function MatchAiApp() {
                                             children: "Final Processing Layer"
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 973,
+                                            lineNumber: 915,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
@@ -2133,13 +2050,13 @@ function MatchAiApp() {
                                             children: "Neural Analysis Engine"
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 974,
+                                            lineNumber: 916,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 972,
+                                    lineNumber: 914,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2150,13 +2067,13 @@ function MatchAiApp() {
                                     children: connected && digits.length >= 25 ? 'ANALYZING' : 'STANDBY'
                                 }, void 0, false, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 976,
+                                    lineNumber: 918,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 971,
+                            lineNumber: 913,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2170,7 +2087,7 @@ function MatchAiApp() {
                                             children: "Active Market"
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 984,
+                                            lineNumber: 926,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2178,13 +2095,13 @@ function MatchAiApp() {
                                             children: marketName
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 985,
+                                            lineNumber: 927,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 983,
+                                    lineNumber: 925,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2195,7 +2112,7 @@ function MatchAiApp() {
                                             children: "Selected Strategy"
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 988,
+                                            lineNumber: 930,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2203,13 +2120,13 @@ function MatchAiApp() {
                                             children: strategy
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 989,
+                                            lineNumber: 931,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 987,
+                                    lineNumber: 929,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2220,7 +2137,7 @@ function MatchAiApp() {
                                             children: "Signal Duration"
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 992,
+                                            lineNumber: 934,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2232,13 +2149,13 @@ function MatchAiApp() {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 993,
+                                            lineNumber: 935,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 991,
+                                    lineNumber: 933,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2249,7 +2166,7 @@ function MatchAiApp() {
                                             children: "Neural Confidence"
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 996,
+                                            lineNumber: 938,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2260,19 +2177,19 @@ function MatchAiApp() {
                                             children: manualSignal ? `${manualSignal.confidence}%` : 'Awaiting Signal'
                                         }, void 0, false, {
                                             fileName: "[project]/components/match-ai-app.tsx",
-                                            lineNumber: 997,
+                                            lineNumber: 939,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/match-ai-app.tsx",
-                                    lineNumber: 995,
+                                    lineNumber: 937,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 982,
+                            lineNumber: 924,
                             columnNumber: 11
                         }, this),
                         predictedOutcomeDigit !== null && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2289,7 +2206,7 @@ function MatchAiApp() {
                                         children: predictedOutcomeDigit
                                     }, void 0, false, {
                                         fileName: "[project]/components/match-ai-app.tsx",
-                                        lineNumber: 1005,
+                                        lineNumber: 947,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2306,7 +2223,7 @@ function MatchAiApp() {
                                                         children: "✓"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/match-ai-app.tsx",
-                                                        lineNumber: 1013,
+                                                        lineNumber: 955,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2314,13 +2231,13 @@ function MatchAiApp() {
                                                         children: "Predicted Outcome"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/match-ai-app.tsx",
-                                                        lineNumber: 1016,
+                                                        lineNumber: 958,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/match-ai-app.tsx",
-                                                lineNumber: 1012,
+                                                lineNumber: 954,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2332,45 +2249,45 @@ function MatchAiApp() {
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/match-ai-app.tsx",
-                                                lineNumber: 1018,
+                                                lineNumber: 960,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/match-ai-app.tsx",
-                                        lineNumber: 1011,
+                                        lineNumber: 953,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/match-ai-app.tsx",
-                                lineNumber: 1004,
+                                lineNumber: 946,
                                 columnNumber: 15
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/components/match-ai-app.tsx",
-                            lineNumber: 1003,
+                            lineNumber: 945,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/match-ai-app.tsx",
-                    lineNumber: 970,
+                    lineNumber: 912,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/components/match-ai-app.tsx",
-            lineNumber: 499,
+            lineNumber: 472,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/components/match-ai-app.tsx",
-        lineNumber: 495,
+        lineNumber: 468,
         columnNumber: 5
     }, this);
 }
-_s(MatchAiApp, "jAHuh2kie17I4AsJEVf+RN5+ZSQ=");
+_s(MatchAiApp, "LmtT24WMK0f/iOKys+dMEn8kIEU=");
 _c = MatchAiApp;
 var _c;
 __turbopack_context__.k.register(_c, "MatchAiApp");
