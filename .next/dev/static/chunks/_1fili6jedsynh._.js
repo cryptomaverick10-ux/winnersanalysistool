@@ -17,7 +17,7 @@ var _s = __turbopack_context__.k.signature();
 ;
 ;
 ;
-const DERIV_WS_URL = `wss://ws.derivws.com/websockets/v3?app_id=${__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].env.NEXT_PUBLIC_DERIV_APP_ID || 1089}`;
+const DERIV_WS_URL = `wss://ws.derivws.com/websockets/v3?app_id=${("TURBOPACK compile-time value", "1089") || 1089}`;
 const MAX_DIGITS = 300;
 const TARGET_DIGIT = 8;
 const ACCENT_COLORS = [
