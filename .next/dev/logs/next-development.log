@@ -1,16 +1,11 @@
-{"timestamp":"12:07:12.127","source":"Server","level":"LOG","message":"✓ Compiled in 11.2s"}
-{"timestamp":"12:20:23.758","source":"Server","level":"LOG","message":"✓ Compiled in 29.6s"}
-{"timestamp":"12:51:05.887","source":"Server","level":"LOG","message":"✓ Compiled in 8s"}
-{"timestamp":"12:51:13.619","source":"Server","level":"LOG","message":"✓ Compiled in 2.3s"}
-{"timestamp":"13:15:44.565","source":"Server","level":"LOG","message":"✓ Compiled in 11.1s"}
-{"timestamp":"13:15:58.155","source":"Server","level":"LOG","message":"✓ Compiled in 4.4s"}
-{"timestamp":"13:23:28.613","source":"Server","level":"LOG","message":"✓ Compiled in 18.2s"}
-{"timestamp":"13:23:32.525","source":"Server","level":"LOG","message":"✓ Compiled in 4s"}
-{"timestamp":"13:30:33.644","source":"Server","level":"LOG","message":"✓ Compiled in 1486ms"}
-{"timestamp":"13:30:41.657","source":"Server","level":"LOG","message":"✓ Compiled in 3s"}
-{"timestamp":"13:36:51.724","source":"Server","level":"LOG","message":"✓ Compiled in 15.9s"}
-{"timestamp":"13:39:24.051","source":"Server","level":"LOG","message":"✓ Compiled in 7.4s"}
-{"timestamp":"14:03:38.242","source":"Server","level":"LOG","message":"✓ Compiled in 27.5s"}
-{"timestamp":"14:04:11.489","source":"Server","level":"LOG","message":"✓ Compiled in 10.3s"}
-{"timestamp":"14:08:41.605","source":"Server","level":"LOG","message":"✓ Compiled in 17.8s"}
-{"timestamp":"14:08:55.526","source":"Server","level":"LOG","message":"✓ Compiled in 8.3s"}
+{"timestamp":"00:00:16.399","source":"Server","level":"WARN","message":"⚠ Turbopack's filesystem cache has been deleted because we previously detected an internal error in Turbopack. Builds or page loads may be slower as a result."}
+{"timestamp":"00:00:16.831","source":"Server","level":"WARN","message":"⚠ Slow filesystem detected. The benchmark took 352ms. If \\\\?\\C:\\Users\\PC\\Documents\\GitHub\\winnersanalysistool\\.next\\dev is a network drive, consider moving it to a local folder.\nSee more: https://nextjs.org/docs/app/guides/local-development"}
+{"timestamp":"00:00:21.085","source":"Server","level":"LOG","message":""}
+{"timestamp":"00:00:25.350","source":"Server","level":"LOG","message":"○ Compiling / ..."}
+{"timestamp":"00:21:04.776","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"00:48:59.150","source":"Server","level":"LOG","message":"✓ Compiled in 6.6s"}
+{"timestamp":"00:49:27.952","source":"Server","level":"LOG","message":"✓ Compiled in 1513ms"}
+{"timestamp":"00:49:42.780","source":"Server","level":"LOG","message":"✓ Compiled in 2.6s"}
+{"timestamp":"00:50:24.861","source":"Server","level":"LOG","message":"✓ Compiled in 2.6s"}
+{"timestamp":"00:52:15.246","source":"Server","level":"LOG","message":"✓ Compiled in 1907ms"}
+{"timestamp":"01:50:27.938","source":"Server","level":"LOG","message":"✓ Finished writing to filesystem cache in 10.1s"}
