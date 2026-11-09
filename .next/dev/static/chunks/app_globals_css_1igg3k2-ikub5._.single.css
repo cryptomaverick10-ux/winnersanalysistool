@@ -2374,6 +2374,11 @@ body {
   color: rgb(40 44 56 / var(--tw-text-opacity, 1));
 }
 
+.text-rose-400 {
+  --tw-text-opacity: 1;
+  color: rgb(251 113 133 / var(--tw-text-opacity, 1));
+}
+
 .underline-offset-4 {
   text-underline-offset: 4px;
 }
@@ -2868,6 +2873,10 @@ body {
 
 .disabled\:opacity-50:disabled {
   opacity: .5;
+}
+
+.disabled\:opacity-60:disabled {
+  opacity: .6;
 }
 
 .group:hover .group-hover\:text-primary {

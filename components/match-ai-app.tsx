@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { analyzeMatchDigits, parseLastDigit, type MatchAiResult } from '@/lib/match-ai';
+import { useDerivWSContext } from '@/components/custom/deriv-ws-provider';
 
 const DERIV_WS_URL = `wss://ws.derivws.com/websockets/v3?app_id=${process.env.NEXT_PUBLIC_DERIV_APP_ID || 1089}`;
 const MAX_DIGITS = 300;
@@ -66,6 +67,7 @@ export function MatchAiApp() {
   const [connected, setConnected] = useState(false);
   const [clockNow, setClockNow] = useState<number | null>(null);
   const [derivTimeOffset, setDerivTimeOffset] = useState<number | null>(null);
+  const [feedError, setFeedError] = useState<string | null>(null);
   const [durationTicks, setDurationTicks] = useState(1);
   const [threshold, setThreshold] = useState(5);
   const [manualSignal, setManualSignal] = useState<ManualSignal | null>(null);
@@ -76,9 +78,9 @@ export function MatchAiApp() {
   const [countdownSeconds, setCountdownSeconds] = useState(0);
   const [themeMode, setThemeMode] = useState<'dark' | 'light'>('dark');
   const [language, setLanguage] = useState('English');
-  const socketRef = useRef<WebSocket | null>(null);
-  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scannerSocketRef = useRef<WebSocket | null>(null);
+  const [loginStarting, setLoginStarting] = useState(false);
+  const { ws, isConnected: socketConnected, auth } = useDerivWSContext();
 
   useEffect(() => {
     const savedColor = localStorage.getItem('ceo-hub-accent-color');
@@ -133,81 +135,86 @@ export function MatchAiApp() {
     document.documentElement.lang = value === 'French' ? 'fr' : value === 'Spanish' ? 'es' : 'en';
   };
 
+  const loginForLiveTicks = async () => {
+    setFeedError(null);
+    setLoginStarting(true);
+    try {
+      await auth.login();
+    } catch (error) {
+      setFeedError(error instanceof Error ? error.message : 'Unable to start Deriv login.');
+      setLoginStarting(false);
+    }
+  };
+
   useEffect(() => {
     let disposed = false;
+    let unsubscribe: (() => Promise<void>) | null = null;
+    setConnected(false);
 
-    const connect = () => {
-      if (disposed) return;
-      setConnected(false);
-
-      const socket = new WebSocket(DERIV_WS_URL);
-      socketRef.current = socket;
-
-      socket.onopen = () => {
-        if (disposed) return;
-        socket.send(JSON.stringify({ ticks_history: symbol, count: MAX_DIGITS, end: 'latest', style: 'ticks' }));
+    if (!ws || !socketConnected) {
+      return () => {
+        disposed = true;
       };
+    }
 
-      socket.onmessage = (event) => {
+    const handleTick = (message: Record<string, unknown>) => {
+      const tick = message.tick as { quote?: number | string; epoch?: number } | undefined;
+      if (!tick) return;
+      const price = Number(tick.quote);
+      if (!Number.isFinite(price)) return;
+      const digit = parseLastDigit(price);
+      setConnected(true);
+      setFeedError(null);
+      if (typeof tick.epoch === 'number' && Number.isFinite(tick.epoch)) {
+        setDerivTimeOffset(tick.epoch * 1000 - Date.now());
+      }
+      setLivePrice(price);
+      setPrices((current) => [...current, price].slice(-MAX_DIGITS));
+      if (digit !== null) {
+        setDigits((current) => [...current, digit].slice(-MAX_DIGITS));
+      }
+    };
+
+    const subscribeToTicks = async () => {
+      try {
+        const history = await ws.send<{ history?: { prices?: number[] } }>({
+          ticks_history: symbol,
+          count: MAX_DIGITS,
+          end: 'latest',
+          style: 'ticks',
+        });
         if (disposed) return;
-        const message = JSON.parse(event.data) as {
-          error?: unknown;
-          history?: { prices?: number[] };
-          tick?: { quote: number | string; epoch?: number; subscription_id?: string | number };
-        };
-        if (message.error) {
-          setConnected(false);
-          socket.close();
+
+        const historyPrices = (history.history?.prices ?? []).filter((price) => Number.isFinite(price));
+        setPrices(historyPrices.slice(-MAX_DIGITS));
+        setDigits(
+          historyPrices
+            .map((price) => parseLastDigit(price))
+            .filter((digit): digit is number => digit !== null)
+            .slice(-MAX_DIGITS)
+        );
+        if (historyPrices.length) setLivePrice(historyPrices.at(-1)!);
+
+        const subscription = await ws.subscribe({ ticks: symbol }, handleTick);
+        if (disposed) {
+          void subscription.unsubscribe();
           return;
         }
-
-        if (message.history?.prices) {
-          const historyPrices = message.history.prices.filter((price) => Number.isFinite(price));
-          setPrices(historyPrices.slice(-MAX_DIGITS));
-          const historyDigits = historyPrices.map((price) => parseLastDigit(price)).filter(
-            (digit): digit is number => digit !== null
-          );
-          setDigits(historyDigits.slice(-MAX_DIGITS));
-          if (historyPrices.length) setLivePrice(historyPrices.at(-1)!);
-          socket.send(JSON.stringify({ ticks: symbol, subscribe: 1 }));
-        }
-
-        if (message.tick) {
-          const price = Number(message.tick.quote);
-          if (!Number.isFinite(price)) return;
-          const digit = parseLastDigit(price);
-          setConnected(true);
-          if (typeof message.tick.epoch === 'number' && Number.isFinite(message.tick.epoch)) {
-            setDerivTimeOffset(message.tick.epoch * 1000 - Date.now());
-          }
-          setLivePrice(price);
-          setPrices((current) => [...current, price].slice(-MAX_DIGITS));
-          if (digit !== null) {
-            setDigits((current) => [...current, digit].slice(-MAX_DIGITS));
-          }
-        }
-      };
-
-      socket.onerror = () => {
+        unsubscribe = subscription.unsubscribe;
+      } catch (error) {
         if (disposed) return;
         setConnected(false);
-        socket.close();
-      };
-      socket.onclose = () => {
-        if (disposed) return;
-        setConnected(false);
-        reconnectTimerRef.current = setTimeout(connect, 1500);
-      };
+        setFeedError(error instanceof Error ? error.message : 'Unable to load Deriv ticks.');
+      }
     };
 
-    connect();
+    void subscribeToTicks();
+
     return () => {
       disposed = true;
-      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
-      socketRef.current?.close();
-      socketRef.current = null;
+      if (unsubscribe) void unsubscribe();
     };
-  }, [symbol]);
+  }, [socketConnected, symbol, ws]);
 
   useEffect(() => {
     setManualSignal(null);
@@ -740,6 +747,28 @@ export function MatchAiApp() {
           </svg>
           <span>{connected ? 'Connected' : 'Not connected / Offline'}</span>
         </div>
+
+        {!auth.wsUrl && (
+          <div className="mt-2 flex flex-col items-center gap-2">
+            <button
+              type="button"
+              onClick={loginForLiveTicks}
+              disabled={loginStarting || auth.authState === 'authenticating'}
+              className="rounded-lg px-4 py-2 text-sm font-black text-white transition disabled:cursor-wait disabled:opacity-60"
+              style={{ backgroundColor: accentColor }}
+            >
+              {loginStarting || auth.authState === 'authenticating' ? 'Connecting to Deriv...' : 'Log in to Deriv for live ticks'}
+            </button>
+            <p className="text-center text-xs text-slate-400">
+              Sign in to connect this dashboard to your Deriv account.
+            </p>
+          </div>
+        )}
+        {feedError && (
+          <p role="alert" className="mt-2 text-center text-xs font-semibold text-rose-400">
+            {feedError}
+          </p>
+        )}
 
         {connected && clockNow !== null && derivTimeOffset !== null && (
           <div className="mt-2 grid grid-cols-2 gap-2" aria-label="Live clocks">
