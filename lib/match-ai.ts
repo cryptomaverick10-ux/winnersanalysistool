@@ -14,7 +14,18 @@ export interface MatchAiResult {
   waiting: boolean;
 }
 
-export function parseLastDigit(price: number | string): number | null {
+export function toLivePatternScore(observedShare: number): number {
+  const boundedShare = Math.min(100, Math.max(0, observedShare));
+  return Math.round(68 + (boundedShare / 100) * 32);
+}
+
+export function parseLastDigit(price: number | string, pipSize?: number): number | null {
+  if (typeof pipSize === 'number' && Number.isInteger(pipSize) && pipSize >= 0 && pipSize <= 20) {
+    const formattedPrice = Number(price).toFixed(pipSize);
+    const digit = Number.parseInt(formattedPrice.at(-1) ?? '', 10);
+    return Number.isNaN(digit) ? null : digit;
+  }
+
   const text = String(price);
   const digit = Number.parseInt(text.slice(-1), 10);
   return Number.isNaN(digit) ? null : digit;

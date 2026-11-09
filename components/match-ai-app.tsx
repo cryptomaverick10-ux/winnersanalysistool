@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { analyzeMatchDigits, parseLastDigit, type MatchAiResult } from '@/lib/match-ai';
+import { analyzeMatchDigits, parseLastDigit, toLivePatternScore, type MatchAiResult } from '@/lib/match-ai';
 import { useDerivWSContext } from '@/components/custom/deriv-ws-provider';
 
 const DERIV_WS_URL = `wss://ws.derivws.com/websockets/v3?app_id=${process.env.NEXT_PUBLIC_DERIV_APP_ID || 1089}`;
@@ -79,6 +79,9 @@ export function MatchAiApp() {
   const [themeMode, setThemeMode] = useState<'dark' | 'light'>('dark');
   const [language, setLanguage] = useState('English');
   const scannerSocketRef = useRef<WebSocket | null>(null);
+  const generationTimerRef = useRef<number | null>(null);
+  const historyPricesRef = useRef<number[]>([]);
+  const tickPipSizeRef = useRef<number | null>(null);
   const [loginStarting, setLoginStarting] = useState(false);
   const { ws, isConnected: socketConnected, auth } = useDerivWSContext();
 
@@ -99,12 +102,19 @@ export function MatchAiApp() {
   useEffect(() => () => scannerSocketRef.current?.close(), []);
 
   useEffect(() => {
-    if (countdownSeconds <= 0) return;
+    if (countdownSeconds <= 0) {
+      setManualSignal(null);
+      return;
+    }
     const timer = window.setTimeout(() => {
       setCountdownSeconds((current) => Math.max(0, current - 1));
     }, 1000);
     return () => window.clearTimeout(timer);
   }, [countdownSeconds]);
+
+  useEffect(() => () => {
+    if (generationTimerRef.current) window.clearTimeout(generationTimerRef.current);
+  }, []);
 
   useEffect(() => {
     if (!connected) {
@@ -149,6 +159,8 @@ export function MatchAiApp() {
   useEffect(() => {
     let disposed = false;
     let unsubscribe: (() => Promise<void>) | null = null;
+    historyPricesRef.current = [];
+    tickPipSizeRef.current = null;
     setConnected(false);
 
     if (!ws || !socketConnected) {
@@ -158,20 +170,34 @@ export function MatchAiApp() {
     }
 
     const handleTick = (message: Record<string, unknown>) => {
-      const tick = message.tick as { quote?: number | string; epoch?: number } | undefined;
+      const tick = message.tick as {
+        quote?: number | string;
+        epoch?: number;
+        pip_size?: number;
+      } | undefined;
       if (!tick) return;
       const price = Number(tick.quote);
       if (!Number.isFinite(price)) return;
-      const digit = parseLastDigit(price);
+      if (typeof tick.pip_size === 'number' && Number.isInteger(tick.pip_size)) {
+        tickPipSizeRef.current = tick.pip_size;
+      }
+      const nextPrices = [...historyPricesRef.current, price].slice(-MAX_DIGITS);
+      historyPricesRef.current = nextPrices;
       setConnected(true);
       setFeedError(null);
       if (typeof tick.epoch === 'number' && Number.isFinite(tick.epoch)) {
         setDerivTimeOffset(tick.epoch * 1000 - Date.now());
       }
       setLivePrice(price);
-      setPrices((current) => [...current, price].slice(-MAX_DIGITS));
-      if (digit !== null) {
-        setDigits((current) => [...current, digit].slice(-MAX_DIGITS));
+      setPrices(nextPrices);
+      const pipSize = tickPipSizeRef.current;
+      if (pipSize !== null) {
+        setDigits(nextPrices
+          .map((item) => parseLastDigit(item, pipSize))
+          .filter((digit): digit is number => digit !== null));
+      } else {
+        const digit = parseLastDigit(price);
+        if (digit !== null) setDigits((current) => [...current, digit].slice(-MAX_DIGITS));
       }
     };
 
@@ -186,6 +212,7 @@ export function MatchAiApp() {
         if (disposed) return;
 
         const historyPrices = (history.history?.prices ?? []).filter((price) => Number.isFinite(price));
+        historyPricesRef.current = historyPrices.slice(-MAX_DIGITS);
         setPrices(historyPrices.slice(-MAX_DIGITS));
         setDigits(
           historyPrices
@@ -236,18 +263,36 @@ export function MatchAiApp() {
     const window = digits.slice(-100);
     const even = window.filter((digit) => digit % 2 === 0).length;
     const over = window.filter((digit) => digit >= threshold).length;
-    const rises = prices.slice(-100).filter((price, index, values) => index > 0 && price > values[index - 1]).length;
+    const priceWindow = prices.slice(-100);
+    const changes = priceWindow.slice(1).map((price, index) => price - priceWindow[index]);
+    const risingChanges = changes.filter((change) => change > 0).length;
+    const fallingChanges = changes.filter((change) => change < 0).length;
+    const directionalChanges = risingChanges + fallingChanges;
 
     const evenProbability = window.length ? (even / window.length) * 100 : 0;
     const overProbability = window.length ? (over / window.length) * 100 : 0;
-    const riseProbability = prices.length > 1 ? (rises / Math.min(99, prices.slice(-100).length - 1)) * 100 : 0;
-    const matchesProbability = matchResult.best?.percentage ?? 0;
+    const riseProbability = directionalChanges ? (risingChanges / directionalChanges) * 100 : 0;
+    const fallProbability = directionalChanges ? (fallingChanges / directionalChanges) * 100 : 0;
 
-    const differsProbability = window.length
-      ? 100 - (window.filter((digit) => digit === TARGET_DIGIT).length / window.length) * 100
+    const bestMatchDigit = matchResult.best?.digit;
+    const matchesCount = bestMatchDigit !== undefined
+      ? window.filter((digit) => digit === bestMatchDigit).length
       : 0;
+    const matchesProbability = window.length ? (matchesCount / window.length) * 100 : 0;
+    const differsProbability = window.length ? 100 - matchesProbability : 0;
 
-    return { evenProbability, overProbability, riseProbability, matchesProbability, differsProbability };
+    return {
+      evenProbability,
+      overProbability,
+      riseProbability,
+      fallProbability,
+      directionalChanges,
+      matchSampleCount: window.length,
+      matchesCount,
+      differsCount: window.length - matchesCount,
+      matchesProbability,
+      differsProbability,
+    };
   }, [digits, matchResult.best, prices, threshold]);
 
   const digitDistribution = useMemo(() => {
@@ -318,6 +363,40 @@ export function MatchAiApp() {
   const lastDigit = digits.at(-1) ?? null;
   const predictedMatch = manualSignal?.label.match(/^MATCH (\d)$/);
   const predictedOutcomeDigit = strategy === 'Matches' && predictedMatch ? Number(predictedMatch[1]) : null;
+  const hasPatternData = connected && digits.length >= 25;
+  const autoPatterns = [
+    {
+      title: 'Even / Odd',
+      signal: hasPatternData ? (tickSequenceAnalysis.nextEven ? 'EVEN' : 'ODD') : 'WAIT',
+      score: hasPatternData ? toLivePatternScore(tickSequenceAnalysis.nextEven
+        ? tickSequenceAnalysis.evenProbability
+        : tickSequenceAnalysis.oddProbability) : null,
+      detail: hasPatternData ? `${tickSequenceAnalysis.patternSamples} sequence samples` : 'Waiting for 25 live ticks',
+      strategy: 'Even/Odd' as Strategy,
+    },
+    {
+      title: 'Over / Under',
+      signal: hasPatternData ? (analysis.overProbability >= 50 ? `OVER ${threshold}` : `UNDER ${threshold}`) : 'WAIT',
+      score: hasPatternData
+        ? toLivePatternScore(analysis.overProbability >= 50 ? analysis.overProbability : 100 - analysis.overProbability)
+        : null,
+      detail: hasPatternData ? `${digits.slice(-100).length} recent digit samples` : 'Waiting for 25 live ticks',
+      strategy: 'Over/Under' as Strategy,
+    },
+    {
+      title: 'Rise / Fall',
+      signal: hasPatternData && analysis.directionalChanges
+        ? (analysis.riseProbability >= 50 ? 'RISE' : 'FALL')
+        : 'WAIT',
+      score: hasPatternData && analysis.directionalChanges
+        ? toLivePatternScore(analysis.riseProbability >= 50 ? analysis.riseProbability : analysis.fallProbability)
+        : null,
+      detail: hasPatternData && analysis.directionalChanges
+        ? `${analysis.directionalChanges} directional price changes`
+        : 'Waiting for directional price changes',
+      strategy: 'Rise/Fall' as Strategy,
+    },
+  ];
 
   const calculateScanResult = (name: string, marketSymbol: string, prices: number[], price: number | null): ScanResult => {
     const recentPrices = prices.slice(-100);
@@ -439,9 +518,12 @@ export function MatchAiApp() {
   };
 
   const generateSignal = () => {
-    if (!connected || digits.length < 25 || generatingSignal || countdownSeconds > 0) return;
+    if (!connected || digits.length < 25 || generatingSignal) return;
+    if (generationTimerRef.current) window.clearTimeout(generationTimerRef.current);
     setGeneratingSignal(true);
-    window.setTimeout(() => {
+    setManualSignal(null);
+    setCountdownSeconds(0);
+    generationTimerRef.current = window.setTimeout(() => {
       let label = 'WAIT';
       let confidence = 0;
 
@@ -455,7 +537,7 @@ export function MatchAiApp() {
           confidence = matchResult.confidence;
         }
       } else if (strategy === 'Differs') {
-        label = `DIFFER FROM ${TARGET_DIGIT}`;
+        label = `DIFFER FROM ${matchResult.best?.digit ?? TARGET_DIGIT}`;
         confidence = Math.round(analysis.differsProbability);
       } else if (strategy === 'Over/Under') {
         const over = durationWindow.filter((digit) => digit >= threshold).length / Math.max(durationWindow.length, 1) * 100;
@@ -478,8 +560,9 @@ export function MatchAiApp() {
       const durationConfidenceAdjustment = durationTicks === 1 ? 0 : (durationTicks - 1) * -1;
       setManualSignal({ label, confidence: Math.min(95, Math.max(0, confidence + durationConfidenceAdjustment)) });
       setGeneratingSignal(false);
-      setCountdownSeconds(10);
-    }, 450);
+      setCountdownSeconds(15);
+      generationTimerRef.current = null;
+    }, 5000);
   };
 
   return (
@@ -797,27 +880,78 @@ export function MatchAiApp() {
         )}
 
         <section className="mt-4 rounded-2xl border border-white/[0.08] bg-[#0d192b] p-3 shadow-[0_16px_40px_rgba(0,0,0,0.16)] sm:p-4">
-          <h2 className="text-sm font-black text-white">Auto AI Patterns</h2>
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-sm font-black text-white">Auto AI Patterns</h2>
+            <p className="text-[10px] font-semibold text-slate-400">Live pattern score, not a win probability</p>
+          </div>
           <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {[
-              ['Even / Odd', connected && digits.length >= 25 ? (tickSequenceAnalysis.nextEven ? 'EVEN' : 'ODD') : 'WAIT', connected && digits.length >= 25 ? Math.round(Math.max(tickSequenceAnalysis.evenProbability, tickSequenceAnalysis.oddProbability)) : 0, 'Even/Odd'],
-              ['Over / Under', connected && digits.length >= 25 ? (analysis.overProbability >= 50 ? 'OVER' : 'UNDER') : 'WAIT', connected && digits.length >= 25 ? Math.round(Math.max(analysis.overProbability, 100 - analysis.overProbability)) : 0, 'Over/Under'],
-              ['Rise / Fall', connected && digits.length >= 25 ? (analysis.riseProbability >= 50 ? 'RISE' : 'FALL') : 'WAIT', connected && digits.length >= 25 ? Math.round(Math.max(analysis.riseProbability, 100 - analysis.riseProbability)) : 0, 'Rise/Fall'],
-              ['Matches', connected && digits.length >= 25 && matchResult.best && !matchResult.waiting ? `DIGIT ${matchResult.best.digit}` : 'WAIT', connected && digits.length >= 25 ? Math.round(matchResult.confidence) : 0, 'Matches'],
-            ].map(([title, signal, probability, value]) => (
+            {autoPatterns.map(({ title, signal, score, detail, strategy: patternStrategy }) => (
               <button
                 key={title}
                 type="button"
-                onClick={() => setStrategy(value as Strategy)}
+                onClick={() => setStrategy(patternStrategy)}
+                title="Pattern score is normalized from recent live-tick frequency; it is not the probability of a future outcome."
                 className={`rounded-xl border px-3 py-3 text-left transition ${
-                  strategy === value ? 'ring-2' : 'border-white/[0.08] bg-[#111f33]'
+                  strategy === patternStrategy ? 'ring-2' : 'border-white/[0.08] bg-[#111f33]'
                 }`}
-                style={strategy === value ? { borderColor: accentColor, backgroundColor: `${accentColor}18`, boxShadow: `0 0 0 2px ${accentColor}24` } : undefined}
+                style={strategy === patternStrategy ? { borderColor: accentColor, backgroundColor: `${accentColor}18`, boxShadow: `0 0 0 2px ${accentColor}24` } : undefined}
               >
                 <span className="block text-[10px] font-bold uppercase tracking-wide text-slate-400">{title}</span>
-                <span className="mt-1 block text-sm font-black text-white">{String(signal)} - {String(probability)}%</span>
+                <span className="mt-1 block text-sm font-black text-white">{signal}</span>
+                <span className="mt-1 block text-xs font-bold text-cyan-300">
+                  {score === null ? 'WAIT' : `Pattern score ${score}%`}
+                </span>
+                <span className="mt-1 block text-[9px] leading-relaxed text-slate-500">{detail}</span>
               </button>
             ))}
+            <div className="rounded-xl border border-white/[0.08] bg-[#111f33] px-3 py-3">
+              <span className="block text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                Matches / Differs
+              </span>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {([
+                  {
+                    label: 'Matches',
+                    strategy: 'Matches' as Strategy,
+                    observed: analysis.matchesProbability,
+                    count: analysis.matchesCount,
+                  },
+                  {
+                    label: 'Differs',
+                    strategy: 'Differs' as Strategy,
+                    observed: analysis.differsProbability,
+                    count: analysis.differsCount,
+                  },
+                ]).map(({ label, strategy: outcomeStrategy, observed, count }) => (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => setStrategy(outcomeStrategy)}
+                    disabled={!hasPatternData}
+                    aria-pressed={strategy === outcomeStrategy}
+                    title="Score is derived from the observed frequency for this outcome in recent live ticks; it is not a win probability."
+                    className={`rounded-lg border px-2 py-2 text-left transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                      strategy === outcomeStrategy
+                        ? 'ring-2'
+                        : 'border-white/[0.08] bg-[#0d192b]'
+                    }`}
+                    style={strategy === outcomeStrategy
+                      ? { borderColor: accentColor, boxShadow: `0 0 0 2px ${accentColor}24` }
+                      : undefined}
+                  >
+                    <span className="block text-[10px] font-black uppercase text-white">{label}</span>
+                    <span className="mt-1 block text-xs font-bold text-cyan-300">
+                      {hasPatternData ? `Score ${toLivePatternScore(observed)}%` : 'WAIT'}
+                    </span>
+                    <span className="mt-1 block text-[9px] text-slate-500">
+                      {hasPatternData
+                        ? `${Math.round(observed)}% · ${count}/${analysis.matchSampleCount} ticks`
+                        : 'Need 25 ticks'}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 
@@ -903,19 +1037,29 @@ export function MatchAiApp() {
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Signal Generator</p>
               <p className="mt-1 text-xs font-bold text-slate-300">
-                {connected ? `${strategy} analysis for ${durationTicks} ${durationTicks === 1 ? 'tick' : 'ticks'}` : 'Waiting for live market ticks...'}
+                {generatingSignal
+                  ? 'Processing live tick analysis...'
+                  : connected
+                    ? `${strategy} analysis for ${durationTicks} ${durationTicks === 1 ? 'tick' : 'ticks'}`
+                    : 'Waiting for live market ticks...'}
               </p>
             </div>
-          <button
-            type="button"
-            onClick={generateSignal}
-            disabled={!connected || digits.length < 25 || generatingSignal || countdownSeconds > 0}
-            className="h-12 w-full shrink-0 rounded-xl text-sm font-black text-white shadow-sm transition disabled:cursor-not-allowed disabled:bg-slate-300 sm:w-52"
-            style={!connected || digits.length < 25 || generatingSignal || countdownSeconds > 0 ? undefined : { backgroundColor: accentColor }}
-          >
-            {generatingSignal ? 'Generating Signal...' : countdownSeconds > 0 ? `Cooldown - ${countdownSeconds}s` : 'Generate Signal'}
-          </button>
+            <button
+              type="button"
+              onClick={generateSignal}
+              disabled={!connected || digits.length < 25 || generatingSignal}
+              className="h-12 w-full shrink-0 rounded-xl text-sm font-black text-white shadow-sm transition disabled:cursor-not-allowed disabled:bg-slate-300 sm:w-52"
+              style={!connected || digits.length < 25 || generatingSignal ? undefined : { backgroundColor: accentColor }}
+            >
+              {generatingSignal ? 'Running Analysis (5s)...' : 'Generate Signal'}
+            </button>
           </div>
+          {generatingSignal && (
+            <div className="mt-4 flex flex-col items-center gap-3 rounded-xl border border-dashed border-cyan-500/30 bg-cyan-950/10 p-5 text-cyan-400">
+              <span className="h-8 w-8 animate-spin rounded-full border-4 border-cyan-400 border-t-transparent" aria-hidden="true" />
+              <p className="text-center text-xs font-bold uppercase tracking-widest">Analyzing live tick data...</p>
+            </div>
+          )}
         </section>
 
         <section className="mt-4 rounded-2xl border border-white/[0.08] bg-[#0d192b] p-5 text-center shadow-[0_16px_40px_rgba(0,0,0,0.16)]">
@@ -927,10 +1071,11 @@ export function MatchAiApp() {
           <p className="mt-2 text-sm font-black text-slate-200">
             Confidence: {manualSignal ? `${manualSignal.confidence}%` : '--'}
           </p>
+          <p className="mt-2 text-xs text-slate-400">Estimated from the selected recent tick sample; not a guarantee of outcome.</p>
           {manualSignal && (
             <div className="mt-3 inline-flex min-w-32 items-center justify-center rounded-lg border px-4 py-2" style={{ borderColor: `${accentColor}55`, backgroundColor: countdownSeconds > 0 ? `${accentColor}18` : undefined }}>
               <span className="text-xs font-black uppercase tracking-[0.12em]" style={{ color: countdownSeconds > 0 ? accentColor : undefined }}>
-                {countdownSeconds > 0 ? `Next Signal: ${countdownSeconds}s` : 'Analysis Ready'}
+                {countdownSeconds > 0 ? `Signal expires in ${countdownSeconds}s` : 'Analysis Ready'}
               </span>
             </div>
           )}
